@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
+    <PackageId>Atc.Hosting</PackageId>
+    <PackageTags>hosting;backgroundservice</PackageTags>
+    <Description>Atc.Hosting is a collection of classes and extension methods for the hosting namespace, e.g. BackgroundServices.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
