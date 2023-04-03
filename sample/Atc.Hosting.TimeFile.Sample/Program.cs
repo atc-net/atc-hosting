@@ -10,9 +10,9 @@ var host = Host
     .CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
+        services.AddSingleton<ITimeService, TimeService>();
         services.Configure<TimeFileWorkerOptions>(configuration.GetSection(TimeFileWorkerOptions.SectionName));
         services.AddHostedService<TimeFileWorker>();
-        services.AddSingleton<ITimeService, TimeService>();
     })
     .Build();
 
