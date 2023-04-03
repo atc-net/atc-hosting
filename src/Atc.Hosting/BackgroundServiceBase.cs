@@ -1,0 +1,138 @@
+namespace Atc.Hosting;
+
+/// <summary>
+/// BackgroundService provides consistent logging (including a logger enriched with the type of the service).
+/// The <see cref="DoWorkAsync"/> method is called indefinitely, so long as it is supposed to.
+/// </summary>
+/// <typeparam name="T">The service type.</typeparam>
+public abstract partial class BackgroundServiceBase<T> : BackgroundService
+{
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="backgroundServiceOptions">The background service options.</param>
+    protected BackgroundServiceBase(
+        ILogger<T> logger,
+        IBackgroundServiceOptions backgroundServiceOptions)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.ServiceOptions = backgroundServiceOptions ?? throw new ArgumentNullException(nameof(backgroundServiceOptions));
+        this.ServiceName = typeof(T).Name;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    protected BackgroundServiceBase(
+        ILogger<T> logger)
+        : this(
+            logger,
+            new DefaultBackgroundServiceOptions())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="backgroundServiceOptions">The background service options.</param>
+    protected BackgroundServiceBase(
+        IBackgroundServiceOptions backgroundServiceOptions)
+        : this(
+            NullLogger<T>.Instance,
+            backgroundServiceOptions)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    protected BackgroundServiceBase()
+        : this(
+            NullLogger<T>.Instance,
+            new DefaultBackgroundServiceOptions())
+    {
+    }
+
+    /// <summary>
+    /// Gets the name of the service.
+    /// </summary>
+    public string ServiceName { get; }
+
+    /// <summary>
+    /// Gets the service options.
+    /// </summary>
+    public IBackgroundServiceOptions ServiceOptions { get; }
+
+    /// <summary>
+    /// Work method run based on <see cref="IBackgroundServiceOptions.RepeatIntervalSeconds" />.
+    /// Exceptions thrown here are turned into alerts / logs with severity of <see cref="LogLevel.Warning" />.
+    /// </summary>
+    /// <param name="stoppingToken">The stopping token.</param>
+    /// <returns>The Task of the workload.</returns>
+    public abstract Task DoWorkAsync(
+        CancellationToken stoppingToken);
+
+    /// <inheritdoc />
+    protected override Task ExecuteAsync(
+        CancellationToken stoppingToken)
+    {
+        return Policy
+            .Handle<Exception>(ex =>
+            {
+                LogBackgroundServiceUnhandledException(ServiceName, ex.Message);
+                return true;
+            })
+            .WaitAndRetry(
+                ServiceOptions.RetryCount,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+            .Execute(
+                async ct => await OnExecuteAsync(ct).ConfigureAwait(false),
+                stoppingToken);
+    }
+
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "OK - by design.")]
+    private async Task OnExecuteAsync(
+        CancellationToken stoppingToken)
+    {
+        // Awaiting Task.Yield() transitions to asynchronous operation immediately.
+        // This allows startup to continue without waiting.
+        await Task.Yield();
+
+        LogBackgroundServiceStarted(ServiceName, ServiceOptions.RepeatIntervalSeconds);
+
+        try
+        {
+            await Task
+                .Delay(ServiceOptions.StartupDelaySeconds * 1_000, stoppingToken)
+                .ConfigureAwait(false);
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
+                {
+                    await DoWorkAsync(stoppingToken).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    LogBackgroundServiceRetrying(ServiceName, ServiceOptions.RepeatIntervalSeconds);
+                }
+
+                await Task
+                    .Delay(ServiceOptions.RepeatIntervalSeconds * 1_000, stoppingToken)
+                    .ConfigureAwait(false);
+            }
+
+            LogBackgroundServiceStopped(ServiceName, stoppingToken.IsCancellationRequested);
+        }
+        catch (Exception) when (stoppingToken.IsCancellationRequested)
+        {
+            LogBackgroundServiceCancelled(ServiceName);
+        }
+        catch (Exception ex)
+        {
+            LogBackgroundServiceUnhandledException(ServiceName, ex.Message);
+        }
+    }
+}
