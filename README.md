@@ -8,7 +8,7 @@ Contains various classes and extensions methods for the hosting namespace, e.g. 
 
 `BackgroundServiceBase` extend the `BackgroundService` with features like:
 
-* High-performance logging by using sourge-generated logging using `ILogger`
+* High-performance logging by using source-generated logging using `ILogger`
 * Built-in retryies using `Polly`
 * Error handling using logging instead of service crashing silently
 * Configuration for:
