@@ -1,7 +1,7 @@
 # ATC coding rules - https://github.com/atc-net/atc-coding-rules
 # Version: 1.0.9
-# Updated: 31-03-2023
-# Location: src
+# Updated: 24-11-2022
+# Location: sample
 # Distribution: DotNet7
 # Inspired by: https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/code-style-rule-options
 
@@ -45,7 +45,3 @@
 ##########################################
 # Custom - Code Analyzers Rules
 ##########################################
-
-dotnet_diagnostic.CA1002.severity = none            # Do not expose generic lists
-
-dotnet_diagnostic.MA0016.severity = none            # Prefer returning collection abstraction instead of implementation

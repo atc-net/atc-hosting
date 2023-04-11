@@ -1,0 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "OK.", Scope = "member", Target = "~M:Atc.Hosting.TimeFile.Sample.TimeFileWorker.#ctor(Microsoft.Extensions.Logging.ILogger{Atc.Hosting.TimeFile.Sample.TimeFileWorker},Microsoft.Extensions.Options.IOptions{Atc.Hosting.TimeFile.Sample.TimeFileWorkerOptions},Atc.Hosting.TimeFile.Sample.ITimeService)")]
+[assembly: SuppressMessage("Performance", "CA1852:Seal internal types", Justification = "OK.")]
+[assembly: SuppressMessage("Design", "MA0076:Do not use implicit culture-sensitive ToString in interpolated strings", Justification = "OK.", Scope = "member", Target = "~M:Atc.Hosting.TimeFile.Sample.TimeFileWorker.DoWorkAsync(System.Threading.CancellationToken)~System.Threading.Tasks.Task")]

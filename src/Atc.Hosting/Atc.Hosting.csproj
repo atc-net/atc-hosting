@@ -2,14 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <PackageId>Atc.Hosting</PackageId>
+	<PackageId>Atc.Hosting</PackageId>
     <PackageTags>hosting;backgroundservice</PackageTags>
     <Description>Atc.Hosting is a collection of classes and extension methods for the hosting namespace, e.g. BackgroundServices.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Polly" Version="7.2.3" />
   </ItemGroup>
 
 </Project>
