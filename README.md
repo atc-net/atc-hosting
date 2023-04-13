@@ -85,6 +85,33 @@ public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
 }
 ```
 
+## Extensions for ServiceProvider
+
+Defined extensions method for ServiceProvider:
+* GetHostedService
+
+### Using GetHostedService`<T>`
+
+Example on how to get the BackgroundService in a HttpContext like from a MVC controller.
+
+In this example we are working with the `TimeFileWorker` BackgroundService.
+
+Note: Remember to wired up BackgroundService in `Program.cs` as this line `services.AddHostedService<TimeFileWorker>();`.
+
+```csharp
+[HttpGet("my-method")]
+public void GetMyMethod()
+{
+    var timeFileWorker = HttpContext.RequestServices.GetHostedService<TimeFileWorker>();
+
+    if (timeFileWorker is not null)
+    {
+      // Here we have acces to the TimeFileWorker instance.
+    }
+}
+```
+
+
 ## Requirements
 
 * [.NET 7 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
