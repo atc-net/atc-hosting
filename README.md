@@ -92,11 +92,13 @@ Defined extensions method for ServiceProvider:
 
 ### Using GetHostedService`<T>`
 
-Example on how to get the BackgroundService in a HttpContext like from a MVC controller.
+Example on how to get the BackgroundService in a HttpContext like from a MVC controller or MinimalApi setup.
 
 In this example we are working with the `TimeFileWorker` BackgroundService.
 
 Note: Remember to wired up BackgroundService in `Program.cs` as this line `services.AddHostedService<TimeFileWorker>();`.
+
+Example setup for MVC controller:
 
 ```csharp
 [HttpGet("my-method")]
@@ -108,6 +110,25 @@ public void GetMyMethod()
     {
       // Here we have acces to the TimeFileWorker instance.
     }
+}
+```
+
+Example setup for MinimalApi:
+
+```csharp
+public void DefineEndpoints(WebApplication app)
+{
+    app.MapGet("my-method", async httpContext =>
+    {
+        var timeFileWorker = HttpContext.RequestServices.GetHostedService<TimeFileWorker>();
+
+        if (timeFileWorker is not null)
+        {
+          // Here we have acces to the TimeFileWorker instance.
+        }
+
+        await Task.CompletedTask;
+    });
 }
 ```
 
