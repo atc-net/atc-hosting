@@ -120,7 +120,7 @@ public void DefineEndpoints(WebApplication app)
 {
     app.MapGet("my-method", async httpContext =>
     {
-        var timeFileWorker = HttpContext.RequestServices.GetHostedService<TimeFileWorker>();
+        var timeFileWorker = httpContext.RequestServices.GetHostedService<TimeFileWorker>();
 
         if (timeFileWorker is not null)
         {
