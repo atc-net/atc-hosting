@@ -85,6 +85,53 @@ public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
 }
 ```
 
+## Extensions for ServiceProvider
+
+Defined extensions methods for ServiceProvider:
+> GetHostedService`<T>`
+
+### Using GetHostedService`<T>`
+
+Example on how to retrieve the BackgroundService from the HttpContext in a MVC controller or MinimalApi endpoint.
+
+In this example we are working with the `TimeFileWorker` BackgroundService.
+
+Note: Remember to wire up BackgroundService in `Program.cs` by adding this line `services.AddHostedService<TimeFileWorker>();`.
+
+Example setup for a MVC controller:
+
+```csharp
+[HttpGet("my-method")]
+public void GetMyMethod()
+{
+    var timeFileWorker = httpContext.RequestServices.GetHostedService<TimeFileWorker>();
+
+    if (timeFileWorker is not null)
+    {
+      // Here we have access to the TimeFileWorker instance.
+    }
+}
+```
+
+Example setup for a MinimalApi endpoint:
+
+```csharp
+public void DefineEndpoints(WebApplication app)
+{
+    app.MapGet("my-method", async httpContext =>
+    {
+        var timeFileWorker = httpContext.RequestServices.GetHostedService<TimeFileWorker>();
+
+        if (timeFileWorker is not null)
+        {
+          // Here we have access to the TimeFileWorker instance.
+        }
+
+        await Task.CompletedTask;
+    });
+}
+```
+
 ## Requirements
 
 * [.NET 7 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
