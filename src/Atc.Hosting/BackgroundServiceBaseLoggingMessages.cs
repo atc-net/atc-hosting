@@ -18,29 +18,39 @@ public partial class BackgroundServiceBase<T>
         EventId = LoggingEventIdConstants.BackgroundServiceStarted,
         Level = LogLevel.Information,
         Message = "Starting {serviceName}. Runs every {repeatIntervalSeconds} seconds")]
-    private partial void LogBackgroundServiceStarted(string serviceName, int repeatIntervalSeconds);
+    private partial void LogBackgroundServiceStarted(
+        string serviceName,
+        int repeatIntervalSeconds);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundServiceStopped,
         Level = LogLevel.Information,
         Message = "Execution ended for worker {serviceName}. Cancellation token cancelled = {isCancellationRequested}")]
-    private partial void LogBackgroundServiceStopped(string serviceName, bool isCancellationRequested);
+    private partial void LogBackgroundServiceStopped(
+        string serviceName,
+        bool isCancellationRequested);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundServiceCancelled,
         Level = LogLevel.Warning,
         Message = "Execution cancelled on worker {serviceName}")]
-    private partial void LogBackgroundServiceCancelled(string serviceName);
+    private partial void LogBackgroundServiceCancelled(
+        string serviceName);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundServiceRetrying,
         Level = LogLevel.Warning,
-        Message = "Unhandled exception occurred in worker {serviceName}. Worker will retry after {repeatIntervalSeconds} seconds")]
-    private partial void LogBackgroundServiceRetrying(string serviceName, int repeatIntervalSeconds);
+        Message = "Unhandled exception occurred in worker {serviceName}. Worker will retry after {repeatIntervalSeconds} seconds - error: '{errorMessage}'")]
+    private partial void LogBackgroundServiceRetrying(
+        string serviceName,
+        int repeatIntervalSeconds,
+        string errorMessage);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundServiceUnhandledException,
         Level = LogLevel.Error,
         Message = "Unhandled exception. Execution Stopping for worker {serviceName} - error: '{errorMessage}'")]
-    private partial void LogBackgroundServiceUnhandledException(string serviceName, string errorMessage);
+    private partial void LogBackgroundServiceUnhandledException(
+        string serviceName,
+        string errorMessage);
 }

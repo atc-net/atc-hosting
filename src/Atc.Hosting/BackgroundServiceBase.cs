@@ -114,9 +114,12 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
                 {
                     await DoWorkAsync(stoppingToken).ConfigureAwait(false);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    LogBackgroundServiceRetrying(ServiceName, ServiceOptions.RepeatIntervalSeconds);
+                    LogBackgroundServiceRetrying(
+                        ServiceName,
+                        ServiceOptions.RepeatIntervalSeconds,
+                        ex.GetLastInnerMessage());
                 }
 
                 await Task
