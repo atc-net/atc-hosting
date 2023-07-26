@@ -86,7 +86,7 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
             })
             .WaitAndRetry(
                 ServiceOptions.RetryCount,
-                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))
+                retryAttempt => TimeSpan.FromSeconds(System.Math.Pow(2, retryAttempt)))
             .Execute(
                 async ct => await OnExecuteAsync(ct).ConfigureAwait(false),
                 stoppingToken);
