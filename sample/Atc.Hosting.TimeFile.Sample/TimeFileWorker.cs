@@ -2,32 +2,54 @@ namespace Atc.Hosting.TimeFile.Sample;
 
 public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
 {
+    private readonly IBackgroundServiceHealthService healthService;
+    private readonly ITimeProvider timeProvider;
+
     private readonly TimeFileWorkerOptions workerOptions;
-    private readonly ITimeService timeService;
 
     public TimeFileWorker(
         ILogger<TimeFileWorker> logger,
-        IOptions<TimeFileWorkerOptions> workerOptions,
-        ITimeService timeService)
+        IBackgroundServiceHealthService healthService,
+        ITimeProvider timeProvider,
+        IOptions<TimeFileWorkerOptions> workerOptions)
         : base(
             logger,
             workerOptions.Value)
     {
+        this.healthService = healthService;
+        this.timeProvider = timeProvider;
         this.workerOptions = workerOptions.Value;
-        this.timeService = timeService;
     }
 
-    public override Task DoWorkAsync(
+    public override async Task StartAsync(
+        CancellationToken cancellationToken)
+    {
+        await base.StartAsync(cancellationToken);
+        healthService.SetRunningState(nameof(TimeFileWorker), isRunning: true);
+    }
+
+    public override async Task StopAsync(
+        CancellationToken cancellationToken)
+    {
+        await base.StopAsync(cancellationToken);
+        healthService.SetRunningState(nameof(TimeFileWorker), isRunning: false);
+    }
+
+    public override async Task DoWorkAsync(
         CancellationToken stoppingToken)
     {
+        var isServiceRunning = healthService.IsServiceRunning(nameof(TimeFileWorker));
+
         Directory.CreateDirectory(workerOptions.OutputDirectory);
 
-        var time = timeService.GetDateTime();
+        var time = timeProvider.UtcNow;
 
         var outFile = Path.Combine(
             workerOptions.OutputDirectory,
-            $"{time:yyyy-MM-dd--HHmmss}.txt");
+            $"{time:yyyy-MM-dd--HHmmss}-{isServiceRunning}.txt");
 
-        return File.WriteAllTextAsync(outFile, ServiceName, stoppingToken);
+        await File.WriteAllTextAsync(outFile, $"{ServiceName}-{isServiceRunning}", stoppingToken);
+
+        healthService.SetRunningState(nameof(TimeFileWorker), isRunning: true);
     }
 }
