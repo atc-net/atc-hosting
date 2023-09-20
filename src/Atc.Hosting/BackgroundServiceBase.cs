@@ -75,25 +75,8 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
         CancellationToken stoppingToken);
 
     /// <inheritdoc />
-    protected override Task ExecuteAsync(
-        CancellationToken stoppingToken)
-    {
-        return Policy
-            .Handle<Exception>(ex =>
-            {
-                LogBackgroundServiceUnhandledException(ServiceName, ex.Message);
-                return true;
-            })
-            .WaitAndRetry(
-                ServiceOptions.RetryCount,
-                retryAttempt => TimeSpan.FromSeconds(System.Math.Pow(2, retryAttempt)))
-            .Execute(
-                async ct => await OnExecuteAsync(ct).ConfigureAwait(false),
-                stoppingToken);
-    }
-
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "OK - by design.")]
-    private async Task OnExecuteAsync(
+    protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
         // Awaiting Task.Yield() transitions to asynchronous operation immediately.
@@ -119,23 +102,25 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
                     LogBackgroundServiceRetrying(
                         ServiceName,
                         ServiceOptions.RepeatIntervalSeconds,
-                        ex.GetLastInnerMessage());
+                        ex);
                 }
 
                 await Task
                     .Delay(ServiceOptions.RepeatIntervalSeconds * 1_000, stoppingToken)
                     .ConfigureAwait(false);
             }
-
-            LogBackgroundServiceStopped(ServiceName, stoppingToken.IsCancellationRequested);
         }
-        catch (Exception) when (stoppingToken.IsCancellationRequested)
+        catch when (stoppingToken.IsCancellationRequested)
         {
             LogBackgroundServiceCancelled(ServiceName);
         }
         catch (Exception ex)
         {
-            LogBackgroundServiceUnhandledException(ServiceName, ex.Message);
+            LogBackgroundServiceUnhandledException(ServiceName, ex);
+        }
+        finally
+        {
+            LogBackgroundServiceStopped(ServiceName, stoppingToken.IsCancellationRequested);
         }
     }
 }

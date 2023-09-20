@@ -11,11 +11,6 @@ public interface IBackgroundServiceOptions
     ushort StartupDelaySeconds { get; set; }
 
     /// <summary>
-    /// Defines the retry count.
-    /// </summary>
-    ushort RetryCount { get; set; }
-
-    /// <summary>
     /// Defines the period between the end of one unit of work and the start of the next.
     /// </summary>
     ushort RepeatIntervalSeconds { get; set; }
