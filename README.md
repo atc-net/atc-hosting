@@ -32,8 +32,7 @@ The Atc.Hosting namespace serves as a toolbox for building scalable and reliable
 
 # BackgroundServiceBase`<T>`
 
-The `BackgroundServiceBase<T>` class serves as a base for background services that require enhanced features like custom logging, retries, and configurable service options. It extends the ASP.NET Core's `BackgroundService` class, providing a more robust framework for handling 
-background tasks.
+The `BackgroundServiceBase<T>` class serves as a base for continuous long running background services that require enhanced features like custom logging and configurable service options. It extends the ASP.NET Core's `BackgroundService` class, providing a more robust framework for handling background tasks.
 
 ## Features
 
@@ -42,20 +41,15 @@ background tasks.
 - Utilizes `ILogger<T>` for type-specific, high-performance logging.
 - Automatically enriches log entries with the name of the service type (`T`).
 
-### Retry Mechanism
-
-- Built-in retries using the `Polly` library.
-- Retry count and exponential backoff settings are configurable.
-
 ### Error Handling
 
-- Catches exceptions and logs them with a severity of `LogLevel.Warning`.
+- Catches unhandled exceptions and logs them with a severity of `LogLevel.Warning`.
+- Reruns the `DoWorkAsync` method after a configurable repeat interval.
 - Designed to log errors rather than crashing the service.
 
 ### Configuration Options
 
 - Allows for startup delays.
-- Configurable retry count.
 - Configurable repeat interval for running tasks.
 
 ### Ease of Use
