@@ -4,7 +4,6 @@ public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
 {
     private readonly Task longRunningTask;
 
-    [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "OK.")]
     public MyWorkerService(
         ILogger<MyWorkerService> logger,
         IOptions<MyServiceOptions> serviceOptions,
