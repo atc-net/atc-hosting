@@ -5,7 +5,7 @@ namespace Atc.Hosting;
 /// The <see cref="DoWorkAsync"/> method is called indefinitely, so long as it is supposed to.
 /// </summary>
 /// <typeparam name="T">The service type.</typeparam>
-public abstract partial class BackgroundServiceBase<T> : BackgroundService
+public abstract class BackgroundServiceBase<T> : BackgroundService
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
@@ -66,6 +66,14 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
     public IBackgroundServiceOptions ServiceOptions { get; }
 
     /// <summary>
+    /// Logger for this service
+    /// </summary>
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
+    [SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "OK.")]
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "OK.")]
+    protected readonly ILogger<T> logger;
+
+    /// <summary>
     /// Work method run based on <see cref="IBackgroundServiceOptions.RepeatIntervalSeconds" />.
     /// Exceptions thrown here are turned into alerts / logs with severity of <see cref="LogLevel.Warning" />.
     /// </summary>
@@ -83,7 +91,7 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
         // This allows startup to continue without waiting.
         await Task.Yield();
 
-        LogBackgroundServiceStarted(ServiceName, ServiceOptions.RepeatIntervalSeconds);
+        logger.LogBackgroundServiceStarted(ServiceName, ServiceOptions.RepeatIntervalSeconds);
 
         try
         {
@@ -99,7 +107,7 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    LogBackgroundServiceRetrying(
+                    logger.LogBackgroundServiceRetrying(
                         ServiceName,
                         ServiceOptions.RepeatIntervalSeconds,
                         ex);
@@ -112,15 +120,15 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
         }
         catch when (stoppingToken.IsCancellationRequested)
         {
-            LogBackgroundServiceCancelled(ServiceName);
+            logger.LogBackgroundServiceCancelled(ServiceName);
         }
         catch (Exception ex)
         {
-            LogBackgroundServiceUnhandledException(ServiceName, ex);
+            logger.LogBackgroundServiceUnhandledException(ServiceName, ex);
         }
         finally
         {
-            LogBackgroundServiceStopped(ServiceName, stoppingToken.IsCancellationRequested);
+            logger.LogBackgroundServiceStopped(ServiceName, stoppingToken.IsCancellationRequested);
         }
     }
 }
