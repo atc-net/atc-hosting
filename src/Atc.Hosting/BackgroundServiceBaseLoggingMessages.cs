@@ -17,7 +17,7 @@ public partial class BackgroundServiceBase<T>
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundServiceStarted,
         Level = LogLevel.Information,
-        Message = "Starting {serviceName}. Runs every {repeatIntervalSeconds} seconds")]
+        Message = "Starting worker {serviceName}. Worker will run with {repeatIntervalSeconds} seconds interval")]
     private partial void LogBackgroundServiceStarted(
         string serviceName,
         int repeatIntervalSeconds);
@@ -40,17 +40,17 @@ public partial class BackgroundServiceBase<T>
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundServiceRetrying,
         Level = LogLevel.Warning,
-        Message = "Unhandled exception occurred in worker {serviceName}. Worker will retry after {repeatIntervalSeconds} seconds - error: '{errorMessage}'")]
+        Message = "Unhandled exception occurred in worker {serviceName}. Worker will retry after {repeatIntervalSeconds} seconds")]
     private partial void LogBackgroundServiceRetrying(
         string serviceName,
         int repeatIntervalSeconds,
-        string errorMessage);
+        Exception exception);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundServiceUnhandledException,
         Level = LogLevel.Error,
-        Message = "Unhandled exception. Execution Stopping for worker {serviceName} - error: '{errorMessage}'")]
+        Message = "Unhandled exception occurred in worker {serviceName}")]
     private partial void LogBackgroundServiceUnhandledException(
         string serviceName,
-        string errorMessage);
+        Exception exception);
 }
