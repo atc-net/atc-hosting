@@ -123,7 +123,7 @@ public class BackgroundServiceBaseTests
                 logger
                     .Log(
                         LogLevel.Information,
-                        $"Starting worker {sut.ServiceName}. Worker will run with {options.RepeatIntervalSeconds} seconds interval");
+                        $"Started worker {sut.ServiceName}. Worker will run with {options.RepeatIntervalSeconds} seconds interval");
 
                 logger
                     .Log(
@@ -134,12 +134,62 @@ public class BackgroundServiceBaseTests
                 logger
                     .Log(
                         LogLevel.Warning,
-                        $"Execution cancelled on worker {sut.ServiceName}");
+                        $"Cancellation invoked for worker {sut.ServiceName}");
 
                 logger
                     .Log(
                         LogLevel.Information,
-                        $"Execution ended for worker {sut.ServiceName}. Cancellation token cancelled = True");
+                        $"Stopped worker {sut.ServiceName}");
+            });
+    }
+
+    [Fact]
+    public async Task Logging_Start_Exception_Stop()
+    {
+        // Arrange
+        var exception = new MyWorkerException("Test exception");
+        var logger = Substitute.For<MockLogger<MyWorkerService>>();
+        var options = new MyServiceOptions();
+
+        logger
+            .IsEnabled(default)
+            .ReturnsForAnyArgs(true);
+
+        var tcs = new TaskCompletionSource();
+        tcs.SetException(exception);
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(1500);
+
+        using var sut = new MyWorkerService(
+            logger,
+            new OptionsWrapper<MyServiceOptions>(options),
+            tcs.Task);
+
+        // Act
+        await sut.StartAsync(cts.Token);
+
+        await Task.Delay(2000);
+
+        // Assert
+        Received.InOrder(
+            () =>
+            {
+                logger
+                    .Log(
+                        LogLevel.Information,
+                        $"Started worker {sut.ServiceName}. Worker will run with {options.RepeatIntervalSeconds} seconds interval");
+
+                logger
+                    .Log(
+                        LogLevel.Error,
+                        $"Unhandled exception occurred in worker {sut.ServiceName}",
+                        exception);
+
+                logger
+                    .Log(
+                        LogLevel.Information,
+                        $"Stopped worker {sut.ServiceName}");
             });
     }
 }

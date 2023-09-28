@@ -75,12 +75,28 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
 
     /// <summary>
     /// Work method run based on <see cref="IBackgroundServiceOptions.RepeatIntervalSeconds" />.
+    /// <br/><br/>
     /// Exceptions thrown here are turned into alerts / logs with severity of <see cref="LogLevel.Warning" />.
     /// </summary>
     /// <param name="stoppingToken">The stopping token.</param>
     /// <returns>The Task of the workload.</returns>
     public abstract Task DoWorkAsync(
         CancellationToken stoppingToken);
+
+    /// <summary>
+    /// Hook for manual handling of exceptions before wait and retry.
+    /// <br/><br/>
+    /// Default behavior with no override is wait and retry.
+    /// <br/><br/>
+    /// You can safely invoke <see cref="BackgroundService.StopAsync(CancellationToken)"/> here to initiate a graceful shutdown of the worker service.
+    /// </summary>
+    /// <param name="exception">The unhandled exception</param>
+    /// <param name="stoppingToken">The stopping token</param>
+    /// <returns>The Task of the exception handling</returns>
+    protected virtual Task OnExceptionAsync(
+        Exception exception,
+        CancellationToken stoppingToken)
+        => Task.CompletedTask;
 
     /// <inheritdoc />
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "OK - by design.")]
@@ -107,6 +123,10 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
                 }
                 catch (Exception ex)
                 {
+                    await OnExceptionAsync(ex, stoppingToken).ConfigureAwait(false);
+
+                    stoppingToken.ThrowIfCancellationRequested();
+
                     logger.LogBackgroundServiceRetrying(
                         ServiceName,
                         ServiceOptions.RepeatIntervalSeconds,
@@ -128,7 +148,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
         }
         finally
         {
-            logger.LogBackgroundServiceStopped(ServiceName, stoppingToken.IsCancellationRequested);
+            logger.LogBackgroundServiceStopped(ServiceName);
         }
     }
 }

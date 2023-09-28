@@ -15,6 +15,18 @@ public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
         this.longRunningTask = longRunningTask;
     }
 
+    protected override Task OnExceptionAsync(
+        Exception exception,
+        CancellationToken stoppingToken)
+    {
+        if (exception is MyWorkerException)
+        {
+            throw exception;
+        }
+
+        return Task.CompletedTask;
+    }
+
     public override Task DoWorkAsync(
         CancellationToken stoppingToken)
         => ExecuteCore(stoppingToken);
