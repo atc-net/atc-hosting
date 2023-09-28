@@ -12,13 +12,61 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     /// </summary>
     /// <param name="logger">The logger.</param>
     /// <param name="backgroundServiceOptions">The background service options.</param>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        ILogger<T> logger,
+        IBackgroundServiceOptions backgroundServiceOptions,
+        IBackgroundServiceHealthService healthService)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ServiceOptions = backgroundServiceOptions ?? throw new ArgumentNullException(nameof(backgroundServiceOptions));
+        this.healthService = healthService ?? throw new ArgumentNullException(nameof(healthService));
+        ServiceName = typeof(T).Name;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="backgroundServiceOptions">The background service options.</param>
     protected BackgroundServiceBase(
         ILogger<T> logger,
         IBackgroundServiceOptions backgroundServiceOptions)
+        : this(
+            logger,
+            backgroundServiceOptions,
+            NullBackgroundServiceHealthService.Instance)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.ServiceOptions = backgroundServiceOptions ?? throw new ArgumentNullException(nameof(backgroundServiceOptions));
-        this.ServiceName = typeof(T).Name;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        ILogger<T> logger,
+        IBackgroundServiceHealthService healthService)
+        : this(
+            logger,
+            new DefaultBackgroundServiceOptions(),
+            healthService)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="backgroundServiceOptions">The background service options.</param>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        IBackgroundServiceOptions backgroundServiceOptions,
+        IBackgroundServiceHealthService healthService)
+        : this(
+            NullLogger<T>.Instance,
+            backgroundServiceOptions,
+            healthService)
+    {
     }
 
     /// <summary>
@@ -29,7 +77,8 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
         ILogger<T> logger)
         : this(
             logger,
-            new DefaultBackgroundServiceOptions())
+            new DefaultBackgroundServiceOptions(),
+            NullBackgroundServiceHealthService.Instance)
     {
     }
 
@@ -41,7 +90,21 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
         IBackgroundServiceOptions backgroundServiceOptions)
         : this(
             NullLogger<T>.Instance,
-            backgroundServiceOptions)
+            backgroundServiceOptions,
+            NullBackgroundServiceHealthService.Instance)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        IBackgroundServiceHealthService healthService)
+        : this(
+            NullLogger<T>.Instance,
+            new DefaultBackgroundServiceOptions(),
+            healthService)
     {
     }
 
@@ -51,7 +114,8 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     protected BackgroundServiceBase()
         : this(
             NullLogger<T>.Instance,
-            new DefaultBackgroundServiceOptions())
+            new DefaultBackgroundServiceOptions(),
+            NullBackgroundServiceHealthService.Instance)
     {
     }
 
@@ -72,6 +136,14 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     [SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "OK.")]
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "OK.")]
     protected readonly ILogger<T> logger;
+
+    /// <summary>
+    /// Get the Background Service Health Service.
+    /// </summary>
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
+    [SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "OK.")]
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "OK.")]
+    protected readonly IBackgroundServiceHealthService healthService;
 
     /// <summary>
     /// Work method run based on <see cref="IBackgroundServiceOptions.RepeatIntervalSeconds" />.
@@ -108,6 +180,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
         await Task.Yield();
 
         logger.LogBackgroundServiceStarted(ServiceName, ServiceOptions.RepeatIntervalSeconds);
+        healthService.SetRunningState(ServiceName, isRunning: true);
 
         try
         {
@@ -120,6 +193,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
                 try
                 {
                     await DoWorkAsync(stoppingToken).ConfigureAwait(false);
+                    healthService.SetRunningState(ServiceName, isRunning: true);
                 }
                 catch (Exception ex)
                 {
@@ -149,6 +223,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
         finally
         {
             logger.LogBackgroundServiceStopped(ServiceName);
+            healthService.SetRunningState(ServiceName, isRunning: false);
         }
     }
 }

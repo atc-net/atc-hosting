@@ -2,7 +2,6 @@ namespace Atc.Hosting.TimeFile.Sample;
 
 public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
 {
-    private readonly IBackgroundServiceHealthService healthService;
     private readonly ITimeProvider timeProvider;
 
     private readonly TimeFileWorkerOptions workerOptions;
@@ -14,9 +13,9 @@ public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
         IOptions<TimeFileWorkerOptions> workerOptions)
         : base(
             logger,
-            workerOptions.Value)
+            workerOptions.Value,
+            healthService)
     {
-        this.healthService = healthService;
         this.timeProvider = timeProvider;
         this.workerOptions = workerOptions.Value;
     }

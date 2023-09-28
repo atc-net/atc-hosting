@@ -192,4 +192,83 @@ public class BackgroundServiceBaseTests
                         $"Stopped worker {sut.ServiceName}");
             });
     }
+
+    [Fact]
+    [SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "OK - for testing.")]
+    public async Task HealthService_Start_Retry_Cancel_Stop()
+    {
+        // Arrange
+        var exception = new Exception("Test exception");
+        var logger = Substitute.For<MockLogger<MyWorkerService>>();
+        var options = new MyServiceOptions();
+        var healthService = Substitute.For<IBackgroundServiceHealthService>();
+
+        logger
+            .IsEnabled(default)
+            .ReturnsForAnyArgs(true);
+
+        var tcs = new TaskCompletionSource();
+        tcs.SetException(exception);
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(2500);
+
+        using var sut = new MyWorkerService(
+            logger,
+            new OptionsWrapper<MyServiceOptions>(options),
+            healthService,
+            tcs.Task);
+
+        // Act
+        await sut.StartAsync(cts.Token);
+
+        await Task.Delay(3000);
+
+        // Assert
+        Received.InOrder(
+            () =>
+            {
+                healthService.SetRunningState(sut.ServiceName, true);
+                healthService.SetRunningState(sut.ServiceName, false);
+            });
+    }
+
+    [Fact]
+    public async Task HealthService_Start_Exception_Stop()
+    {
+        // Arrange
+        var exception = new MyWorkerException("Test exception");
+        var logger = Substitute.For<MockLogger<MyWorkerService>>();
+        var options = new MyServiceOptions();
+        var healthService = Substitute.For<IBackgroundServiceHealthService>();
+
+        logger
+            .IsEnabled(default)
+            .ReturnsForAnyArgs(true);
+
+        var tcs = new TaskCompletionSource();
+        tcs.SetException(exception);
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(1500);
+
+        using var sut = new MyWorkerService(
+            logger,
+            new OptionsWrapper<MyServiceOptions>(options),
+            healthService,
+            tcs.Task);
+
+        // Act
+        await sut.StartAsync(cts.Token);
+
+        await Task.Delay(2000);
+
+        // Assert
+        Received.InOrder(
+            () =>
+            {
+                healthService.SetRunningState(sut.ServiceName, true);
+                healthService.SetRunningState(sut.ServiceName, false);
+            });
+    }
 }
