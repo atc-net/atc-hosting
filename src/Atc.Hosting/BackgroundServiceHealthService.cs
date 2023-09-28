@@ -9,8 +9,8 @@ public sealed class BackgroundServiceHealthService : IBackgroundServiceHealthSer
 
     private readonly ITimeProvider timeProvider;
 
-    private readonly Dictionary<string, (bool IsRunning, DateTime LastUpdated)> serviceStates = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, ushort> maxStalenessInSeconds = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, (bool IsRunning, DateTime LastUpdated)> serviceStates = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, ushort> maxStalenessInSeconds = new(StringComparer.Ordinal);
 
     public BackgroundServiceHealthService(
         ITimeProvider timeProvider)
@@ -42,6 +42,6 @@ public sealed class BackgroundServiceHealthService : IBackgroundServiceHealthSer
         var dateTimeDiff = state.LastUpdated.DateTimeDiff(timeProvider.UtcNow, DateTimeDiffCompareType.Seconds);
 
         return state.IsRunning &&
-               (dateTimeDiff <= maxStaleness + GracePeriodInSeconds);
+            (dateTimeDiff <= maxStaleness + GracePeriodInSeconds);
     }
 }

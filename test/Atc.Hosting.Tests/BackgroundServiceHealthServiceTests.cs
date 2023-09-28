@@ -21,7 +21,7 @@ public sealed class BackgroundServiceHealthServiceTests
 
         Assert.NotNull(fieldInfoForStaleness);
 
-        var maxStalenessDict = (Dictionary<string, ushort>)fieldInfoForStaleness.GetValue(sut)!;
+        var maxStalenessDict = (ConcurrentDictionary<string, ushort>)fieldInfoForStaleness.GetValue(sut)!;
         Assert.True(maxStalenessDict.ContainsKey(serviceName));
 
         var actual = maxStalenessDict[serviceName];
@@ -57,7 +57,7 @@ public sealed class BackgroundServiceHealthServiceTests
 
         Assert.NotNull(fieldInfoForServiceStates);
 
-        var serviceStatesDict = (Dictionary<string, (bool IsRunning, DateTime LastUpdated)>)fieldInfoForServiceStates.GetValue(sut)!;
+        var serviceStatesDict = (ConcurrentDictionary<string, (bool IsRunning, DateTime LastUpdated)>)fieldInfoForServiceStates.GetValue(sut)!;
         Assert.True(serviceStatesDict.ContainsKey(serviceName));
 
         var actual = serviceStatesDict[serviceName].IsRunning;
@@ -116,7 +116,7 @@ public sealed class BackgroundServiceHealthServiceTests
 
             Assert.NotNull(fieldInfoForServiceStates);
 
-            var serviceStatesDict = (Dictionary<string, (bool IsRunning, DateTime LastUpdated)>)fieldInfoForServiceStates.GetValue(sut)!;
+            var serviceStatesDict = (ConcurrentDictionary<string, (bool IsRunning, DateTime LastUpdated)>)fieldInfoForServiceStates.GetValue(sut)!;
             Assert.True(serviceStatesDict.ContainsKey(serviceName));
 
             var frozenTimeRewind = frozenTime.AddSeconds(-(secondsToAdvance.Value + gracePeriodInSeconds));
