@@ -4,7 +4,6 @@ public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
 {
     private readonly Task longRunningTask;
 
-    [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "OK.")]
     public MyWorkerService(
         ILogger<MyWorkerService> logger,
         IOptions<MyServiceOptions> serviceOptions,
@@ -14,6 +13,31 @@ public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
             serviceOptions.Value)
     {
         this.longRunningTask = longRunningTask;
+    }
+
+    public MyWorkerService(
+        ILogger<MyWorkerService> logger,
+        IOptions<MyServiceOptions> serviceOptions,
+        IBackgroundServiceHealthService healthService,
+        Task longRunningTask)
+        : base(
+            logger,
+            serviceOptions.Value,
+            healthService)
+    {
+        this.longRunningTask = longRunningTask;
+    }
+
+    protected override Task OnExceptionAsync(
+        Exception exception,
+        CancellationToken stoppingToken)
+    {
+        if (exception is MyWorkerException)
+        {
+            throw exception;
+        }
+
+        return Task.CompletedTask;
     }
 
     public override Task DoWorkAsync(

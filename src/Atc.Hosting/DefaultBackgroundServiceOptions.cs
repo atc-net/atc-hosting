@@ -11,16 +11,11 @@ public class DefaultBackgroundServiceOptions : IBackgroundServiceOptions
     public ushort StartupDelaySeconds { get; set; } = 1;
 
     /// <summary>
-    /// Defines the retry count - the default value is 3.
-    /// </summary>
-    public ushort RetryCount { get; set; } = 3;
-
-    /// <summary>
     /// Defines the period between the end of one unit of work and the start of the next - the default value is 30.
     /// </summary>
     public ushort RepeatIntervalSeconds { get; set; } = 30;
 
     /// <inheritdoc />
     public override string ToString()
-        => $"{nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RetryCount)}: {RetryCount}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}";
+        => $"{nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}";
 }

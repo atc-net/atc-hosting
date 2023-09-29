@@ -5,8 +5,25 @@ namespace Atc.Hosting;
 /// The <see cref="DoWorkAsync"/> method is called indefinitely, so long as it is supposed to.
 /// </summary>
 /// <typeparam name="T">The service type.</typeparam>
-public abstract partial class BackgroundServiceBase<T> : BackgroundService
+public abstract class BackgroundServiceBase<T> : BackgroundService
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="backgroundServiceOptions">The background service options.</param>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        ILogger<T> logger,
+        IBackgroundServiceOptions backgroundServiceOptions,
+        IBackgroundServiceHealthService healthService)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        ServiceOptions = backgroundServiceOptions ?? throw new ArgumentNullException(nameof(backgroundServiceOptions));
+        this.healthService = healthService ?? throw new ArgumentNullException(nameof(healthService));
+        ServiceName = typeof(T).Name;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
     /// </summary>
@@ -15,10 +32,41 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
     protected BackgroundServiceBase(
         ILogger<T> logger,
         IBackgroundServiceOptions backgroundServiceOptions)
+        : this(
+            logger,
+            backgroundServiceOptions,
+            NullBackgroundServiceHealthService.Instance)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.ServiceOptions = backgroundServiceOptions ?? throw new ArgumentNullException(nameof(backgroundServiceOptions));
-        this.ServiceName = typeof(T).Name;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        ILogger<T> logger,
+        IBackgroundServiceHealthService healthService)
+        : this(
+            logger,
+            new DefaultBackgroundServiceOptions(),
+            healthService)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="backgroundServiceOptions">The background service options.</param>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        IBackgroundServiceOptions backgroundServiceOptions,
+        IBackgroundServiceHealthService healthService)
+        : this(
+            NullLogger<T>.Instance,
+            backgroundServiceOptions,
+            healthService)
+    {
     }
 
     /// <summary>
@@ -29,7 +77,8 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
         ILogger<T> logger)
         : this(
             logger,
-            new DefaultBackgroundServiceOptions())
+            new DefaultBackgroundServiceOptions(),
+            NullBackgroundServiceHealthService.Instance)
     {
     }
 
@@ -41,7 +90,21 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
         IBackgroundServiceOptions backgroundServiceOptions)
         : this(
             NullLogger<T>.Instance,
-            backgroundServiceOptions)
+            backgroundServiceOptions,
+            NullBackgroundServiceHealthService.Instance)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
+    /// </summary>
+    /// <param name="healthService">The background service health service.</param>
+    protected BackgroundServiceBase(
+        IBackgroundServiceHealthService healthService)
+        : this(
+            NullLogger<T>.Instance,
+            new DefaultBackgroundServiceOptions(),
+            healthService)
     {
     }
 
@@ -51,7 +114,8 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
     protected BackgroundServiceBase()
         : this(
             NullLogger<T>.Instance,
-            new DefaultBackgroundServiceOptions())
+            new DefaultBackgroundServiceOptions(),
+            NullBackgroundServiceHealthService.Instance)
     {
     }
 
@@ -66,7 +130,24 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
     public IBackgroundServiceOptions ServiceOptions { get; }
 
     /// <summary>
+    /// Logger for this service
+    /// </summary>
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
+    [SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "OK.")]
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "OK.")]
+    protected readonly ILogger<T> logger;
+
+    /// <summary>
+    /// Get the Background Service Health Service.
+    /// </summary>
+    [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
+    [SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "OK.")]
+    [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "OK.")]
+    protected readonly IBackgroundServiceHealthService healthService;
+
+    /// <summary>
     /// Work method run based on <see cref="IBackgroundServiceOptions.RepeatIntervalSeconds" />.
+    /// <br/><br/>
     /// Exceptions thrown here are turned into alerts / logs with severity of <see cref="LogLevel.Warning" />.
     /// </summary>
     /// <param name="stoppingToken">The stopping token.</param>
@@ -74,33 +155,32 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
     public abstract Task DoWorkAsync(
         CancellationToken stoppingToken);
 
-    /// <inheritdoc />
-    protected override Task ExecuteAsync(
+    /// <summary>
+    /// Hook for manual handling of exceptions before wait and retry.
+    /// <br/><br/>
+    /// Default behavior with no override is wait and retry.
+    /// <br/><br/>
+    /// You can safely invoke <see cref="BackgroundService.StopAsync(CancellationToken)"/> here to initiate a graceful shutdown of the worker service.
+    /// </summary>
+    /// <param name="exception">The unhandled exception</param>
+    /// <param name="stoppingToken">The stopping token</param>
+    /// <returns>The Task of the exception handling</returns>
+    protected virtual Task OnExceptionAsync(
+        Exception exception,
         CancellationToken stoppingToken)
-    {
-        return Policy
-            .Handle<Exception>(ex =>
-            {
-                LogBackgroundServiceUnhandledException(ServiceName, ex.Message);
-                return true;
-            })
-            .WaitAndRetry(
-                ServiceOptions.RetryCount,
-                retryAttempt => TimeSpan.FromSeconds(System.Math.Pow(2, retryAttempt)))
-            .Execute(
-                async ct => await OnExecuteAsync(ct).ConfigureAwait(false),
-                stoppingToken);
-    }
+        => Task.CompletedTask;
 
+    /// <inheritdoc />
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "OK - by design.")]
-    private async Task OnExecuteAsync(
+    protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
         // Awaiting Task.Yield() transitions to asynchronous operation immediately.
         // This allows startup to continue without waiting.
         await Task.Yield();
 
-        LogBackgroundServiceStarted(ServiceName, ServiceOptions.RepeatIntervalSeconds);
+        logger.LogBackgroundServiceStarted(ServiceName, ServiceOptions.RepeatIntervalSeconds);
+        healthService.SetRunningState(ServiceName, isRunning: true);
 
         try
         {
@@ -113,29 +193,37 @@ public abstract partial class BackgroundServiceBase<T> : BackgroundService
                 try
                 {
                     await DoWorkAsync(stoppingToken).ConfigureAwait(false);
+                    healthService.SetRunningState(ServiceName, isRunning: true);
                 }
                 catch (Exception ex)
                 {
-                    LogBackgroundServiceRetrying(
+                    await OnExceptionAsync(ex, stoppingToken).ConfigureAwait(false);
+
+                    stoppingToken.ThrowIfCancellationRequested();
+
+                    logger.LogBackgroundServiceRetrying(
                         ServiceName,
                         ServiceOptions.RepeatIntervalSeconds,
-                        ex.GetLastInnerMessage());
+                        ex);
                 }
 
                 await Task
                     .Delay(ServiceOptions.RepeatIntervalSeconds * 1_000, stoppingToken)
                     .ConfigureAwait(false);
             }
-
-            LogBackgroundServiceStopped(ServiceName, stoppingToken.IsCancellationRequested);
         }
-        catch (Exception) when (stoppingToken.IsCancellationRequested)
+        catch when (stoppingToken.IsCancellationRequested)
         {
-            LogBackgroundServiceCancelled(ServiceName);
+            logger.LogBackgroundServiceCancelled(ServiceName);
         }
         catch (Exception ex)
         {
-            LogBackgroundServiceUnhandledException(ServiceName, ex.Message);
+            logger.LogBackgroundServiceUnhandledException(ServiceName, ex);
+        }
+        finally
+        {
+            logger.LogBackgroundServiceStopped(ServiceName);
+            healthService.SetRunningState(ServiceName, isRunning: false);
         }
     }
 }

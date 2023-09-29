@@ -50,3 +50,4 @@ dotnet_diagnostic.CA1062.severity = none            # Validate arguments of publ
 dotnet_diagnostic.CA1852.severity = none            # Seal internal types
 
 dotnet_diagnostic.MA0076.severity = none            # Do not use implicit culture-sensitive ToString in interpolated strings
+dotnet_diagnostic.CA1848.severity = none            # Performance logging
