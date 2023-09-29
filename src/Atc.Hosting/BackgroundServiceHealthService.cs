@@ -33,15 +33,19 @@ public sealed class BackgroundServiceHealthService : IBackgroundServiceHealthSer
     public bool IsServiceRunning(
         string serviceName)
     {
-        if (!serviceStates.TryGetValue(serviceName, out var state)
-            || !maxStalenessInSeconds.TryGetValue(serviceName, out var maxStaleness))
+        if (!serviceStates.TryGetValue(serviceName, out var state) ||
+            !state.IsRunning)
         {
             return false;
         }
 
-        var dateTimeDiff = state.LastUpdated.DateTimeDiff(timeProvider.UtcNow, DateTimeDiffCompareType.Seconds);
+        if (maxStalenessInSeconds.TryGetValue(serviceName, out var maxStaleness))
+        {
+            var dateTimeDiff = state.LastUpdated.DateTimeDiff(timeProvider.UtcNow, DateTimeDiffCompareType.Seconds);
 
-        return state.IsRunning &&
-            (dateTimeDiff <= maxStaleness + GracePeriodInSeconds);
+            return dateTimeDiff <= maxStaleness + GracePeriodInSeconds;
+        }
+
+        return true;
     }
 }

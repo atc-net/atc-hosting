@@ -67,8 +67,8 @@ public sealed class BackgroundServiceHealthServiceTests
     }
 
     [Theory]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, true, null, null)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, false, null, null)]
+    [InlineAutoNSubstituteData("TimeFileWorker", true, true, null, null)]
+    [InlineAutoNSubstituteData("TimeFileWorker", true, true, null, 2)]
     [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, 2)]
     [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, 1)]
     [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, 0)]
@@ -77,7 +77,7 @@ public sealed class BackgroundServiceHealthServiceTests
     [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, null)]
     [InlineAutoNSubstituteData("TimeFileWorker", false, true, (ushort)2, 3)]
     [InlineAutoNSubstituteData("TimeFileWorker", false, true, (ushort)0, 2)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, true, null, 2)]
+    [InlineAutoNSubstituteData("TimeFileWorker", false, false, null, null)]
     [InlineAutoNSubstituteData("TimeFileWorker", false, false, (ushort)2, 0)]
     [InlineAutoNSubstituteData("TimeFileWorker", false, false, null, 2)]
     [InlineAutoNSubstituteData("TimeFileWorker", false, false, (ushort)2, 3)]
