@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 	<PackageId>Atc.Hosting</PackageId>
     <PackageTags>hosting;backgroundservice</PackageTags>
     <Description>Atc.Hosting is a collection of classes and extension methods for the hosting namespace, e.g. BackgroundServices.</Description>
