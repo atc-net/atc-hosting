@@ -23,6 +23,7 @@ The Atc.Hosting namespace serves as a toolbox for building scalable and reliable
     - [Constructor dependency injection](#constructor-dependency-injection)
     - [In your `StartAsync` and `StopAsync` methods, update the service's running state](#in-your-startasync-and-stopasync-methods-update-the-services-running-state)
     - [Inside your worker method, you can set the running state of the service (to update latest timestamp)](#inside-your-worker-method-you-can-set-the-running-state-of-the-service-to-update-latest-timestamp)
+  - [Default implementation for `BackgroundServiceBase<>`](#default-implementation-for-backgroundservicebase)
 - [Complete TimeFileWorker example](#complete-timefileworker-example)
 - [Extensions for ServiceProvider](#extensions-for-serviceprovider)
   - [Using GetHostedService`<T>`](#using-gethostedservicet)
@@ -185,8 +186,8 @@ The `BackgroundServiceBase<>` automatically uses the `IBackgroundServiceHealthSe
 public TimeFileWorker(
     //...other parameters
     IBackgroundServiceHealthService healthService,
-    //...other parameters 
-    ) 
+    //...other parameters
+    )
     : base (healthService)
 {
     //...other initializations
@@ -313,7 +314,7 @@ public void DefineEndpoints(WebApplication app)
 
 # Requirements
 
-- [.NET 7 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 
 # How to contribute
 
