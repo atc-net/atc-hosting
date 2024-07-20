@@ -1,3 +1,4 @@
+// ReSharper disable CheckNamespace
 namespace Atc.Hosting;
 
 /// <summary>
@@ -14,6 +15,16 @@ internal static partial class LoggerExtensions
         this ILogger logger,
         string serviceName,
         int repeatIntervalSeconds);
+
+    [LoggerMessage(
+        EventId = LoggingEventIdConstants.BackgroundService.Started,
+        Level = LogLevel.Information,
+        Message = "Started worker {serviceName}. Worker will run with cron expression {cronExpression}",
+        SkipEnabledCheck = false)]
+    internal static partial void LogBackgroundServiceStarted(
+        this ILogger logger,
+        string serviceName,
+        string cronExpression);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Stopped,
@@ -42,6 +53,17 @@ internal static partial class LoggerExtensions
         this ILogger logger,
         string serviceName,
         int repeatIntervalSeconds,
+        Exception exception);
+
+    [LoggerMessage(
+        EventId = LoggingEventIdConstants.BackgroundService.Retrying,
+        Level = LogLevel.Warning,
+        Message = "Unhandled exception occurred in worker {serviceName}. Worker will retry on next defined in cron expression {cronExpression}",
+        SkipEnabledCheck = false)]
+    internal static partial void LogBackgroundServiceRetrying(
+        this ILogger logger,
+        string serviceName,
+        string cronExpression,
         Exception exception);
 
     [LoggerMessage(
