@@ -9,8 +9,12 @@ var host = Host
     .ConfigureServices(services =>
     {
         services.AddSingleton<ITimeProvider, SystemTimeProvider>();
+
         services.Configure<TimeFileWorkerOptions>(configuration.GetSection(TimeFileWorkerOptions.SectionName));
         services.AddHostedService<TimeFileWorker>();
+
+        services.Configure<TimeFileScheduleWorkerOptions>(configuration.GetSection(TimeFileScheduleWorkerOptions.SectionName));
+        services.AddHostedService<TimeFileScheduleWorker>();
 
         services.AddSingleton<IBackgroundServiceHealthService, BackgroundServiceHealthService>(s =>
         {
@@ -24,4 +28,4 @@ var host = Host
     })
     .Build();
 
-host.Run();
+await host.RunAsync();
