@@ -1,16 +1,16 @@
 namespace Atc.Hosting.TimeFile.Sample;
 
-public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
+public class TimeFileScheduleWorker : BackgroundScheduleServiceBase<TimeFileScheduleWorker>
 {
     private readonly ITimeProvider timeProvider;
 
-    private readonly TimeFileWorkerOptions workerOptions;
+    private readonly TimeFileScheduleWorkerOptions workerOptions;
 
-    public TimeFileWorker(
-        ILogger<TimeFileWorker> logger,
+    public TimeFileScheduleWorker(
+        ILogger<TimeFileScheduleWorker> logger,
         IBackgroundServiceHealthService healthService,
         ITimeProvider timeProvider,
-        IOptions<TimeFileWorkerOptions> workerOptions)
+        IOptions<TimeFileScheduleWorkerOptions> workerOptions)
         : base(
             logger,
             workerOptions.Value,

@@ -32,7 +32,39 @@ The Atc.Hosting namespace serves as a toolbox for building scalable and reliable
 
 # BackgroundServiceBase`<T>`
 
-The `BackgroundServiceBase<T>` class serves as a base for continuous long running background services that require enhanced features like custom logging and configurable service options. It extends the ASP.NET Core's `BackgroundService` class, providing a more robust framework for handling background tasks.
+The `BackgroundServiceBase<T>` class serves as a base for continuous long running background services that require enhanced features like custom logging and configurable service options.
+It extends the ASP.NET Core's `BackgroundService` class, providing a more robust framework for handling background tasks.
+
+This class is based on repeat intervals.
+
+# BackgroundScheduleServiceBase`<T>`
+
+The `BackgroundScheduleServiceBase<T>` class serves as a base for continuous long running background services that require enhanced features like custom logging and configurable service options.
+It extends the ASP.NET Core's `BackgroundService` class, providing a more robust framework for handling background tasks.
+
+This class is based on cron expression for scheduling.
+
+- More information about cron expressions can be found on [wiki](https://en.wikipedia.org/wiki/Cron)
+- To get help with defining a cron expression, use this [cron online helper](https://crontab.cronhub.io/)
+
+## Cron format
+
+Cron expression is a mask to define fixed times, dates and intervals. 
+The mask consists of second (optional), minute, hour, day-of-month, month and day-of-week fields.
+All of the fields allow you to specify multiple values, and any given date/time will satisfy the specified Cron expression, if all the fields contain a matching value.
+
+```
+                                       Allowed values    Allowed special characters   Comment
+
+┌───────────── second (optional)       0-59              * , - /                      
+│ ┌───────────── minute                0-59              * , - /                      
+│ │ ┌───────────── hour                0-23              * , - /                      
+│ │ │ ┌───────────── day of month      1-31              * , - / L W ?                
+│ │ │ │ ┌───────────── month           1-12 or JAN-DEC   * , - /                      
+│ │ │ │ │ ┌───────────── day of week   0-6  or SUN-SAT   * , - / # L ?                Both 0 and 7 means SUN
+│ │ │ │ │ │
+* * * * * *
+```
 
 ## Features
 
@@ -44,14 +76,15 @@ The `BackgroundServiceBase<T>` class serves as a base for continuous long runnin
 ### Error Handling
 
 - Catches unhandled exceptions and logs them with a severity of `LogLevel.Warning`.
-- Reruns the `DoWorkAsync` method after a configurable repeat interval.
+- Reruns the `DoWorkAsync` method after a configurable `repeat interval` for `BackgroundServiceBase` or `scheduled` for `BackgroundScheduleServiceBase`.
 - For manual error handling hook into the exception handling in `DoWorkAsync` by overriding the `OnExceptionAsync` method.
 - Designed to log errors rather than crashing the service.
 
 ### Configuration Options
 
-- Allows for startup delays.
-- Configurable repeat interval for running tasks.
+- Allows for `startup delays` for `BackgroundServiceBase`.
+- Configurable `repeat interval` for running tasks with `BackgroundServiceBase`.
+- Configurable `cron expression` for scheduling running tasks with `BackgroundScheduleServiceBase`.
 
 ### Ease of Use
 
@@ -63,6 +96,21 @@ The `BackgroundServiceBase<T>` class serves as a base for continuous long runnin
 public class MyBackgroundService : BackgroundServiceBase<MyBackgroundService>
 {
     public MyBackgroundService(ILogger<MyBackgroundService> logger, IBackgroundServiceOptions options)
+        : base(logger, options)
+    {
+    }
+
+    public override Task DoWorkAsync(CancellationToken stoppingToken)
+    {
+        // Your background task logic here
+    }
+}
+```
+
+```csharp
+public class MyBackgroundService : BackgroundScheduleServiceBase<MyBackgroundService>
+{
+    public MyBackgroundService(ILogger<MyBackgroundService> logger, IBackgroundScheduleServiceOptions options)
         : base(logger, options)
     {
     }
@@ -92,12 +140,37 @@ var host = Host
     })
     .Build();
 
-host.Run();
+await host.RunAsync();
 ```
 
 In this example the `TimeFileWorker` BackgroundService is wired up by using `AddHostedService<T>` as a normal `BackgroundService`.
 
 Note: `TimeFileWorker` uses `TimeFileWorkerOptions` that implements `IBackgroundServiceOptions`.
+
+## Setup BackgroundScheduleServiceBase via Dependency Injection
+
+```csharp
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .Build();
+
+var host = Host
+    .CreateDefaultBuilder(args)
+    .ConfigureServices(services =>
+    {
+        services.AddSingleton<ITimeService, TimeService>();
+        services.Configure<TimeFileScheduleWorkerOptions>(configuration.GetSection(TimeFileScheduleWorkerOptions.SectionName));
+        services.AddHostedService<TimeFileScheduleWorker>();
+    })
+    .Build();
+
+await host.RunAsync();
+```
+
+In this example the `TimeFileScheduleWorker` BackgroundService is wired up by using `AddHostedService<T>` as a normal `BackgroundService`.
+
+Note: `TimeFileScheduleWorker` uses `TimeFileScheduleWorkerOptions` that implements `IBackgroundScheduleServiceOptions`.
 
 # BackgroundServiceHealthService
 
@@ -245,9 +318,84 @@ public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
 
         var outFile = Path.Combine(
             workerOptions.OutputDirectory,
-            $"{time:yyyy-MM-dd--HHmmss}-{isServiceRunning}.txt");
+            $"{nameof(TimeFileWorker)}.txt");
 
-        return File.WriteAllTextAsync(outFile, $"{ServiceName}-{isServiceRunning}", stoppingToken);
+        return File.AppendAllLinesAsync(
+            outFile,
+            contents: [$"{time:yyyy-MM-dd HH:mm:ss} - {ServiceName} - IsRunning={isServiceRunning}"],
+            stoppingToken);
+    }
+
+    protected override Task OnExceptionAsync(
+        Exception exception,
+        CancellationToken stoppingToken)
+    {
+        if (exception is IOException or UnauthorizedAccessException)
+        {
+            logger.LogCritical(exception, "Could not write file!");
+            return StopAsync(stoppingToken);
+        }
+
+        return base.OnExceptionAsync(exception, stoppingToken);
+    }
+}
+```
+
+# Complete TimeFileScheduleWorker example
+
+A sample reference implementation can be found in the sample project [`Atc.Hosting.TimeFile.Sample`](sample/Atc.Hosting.TimeFile.Sample/Program.cs)
+which shows an example of the service `TimeFileScheduleWorker` that uses `BackgroundScheduleServiceBase` and the `IBackgroundServiceHealthService`.
+
+```csharp
+public class TimeFileScheduleWorker : BackgroundScheduleServiceBase<TimeFileScheduleWorker>
+{
+    private readonly ITimeProvider timeProvider;
+
+    private readonly TimeFileScheduleWorkerOptions workerOptions;
+
+    public TimeFileWorker(
+        ILogger<TimeFileScheduleWorker> logger,
+        IBackgroundServiceHealthService healthService,
+        ITimeProvider timeProvider,
+        IOptions<TimeFileScheduleWorkerOptions> workerOptions)
+        : base(
+            logger,
+            workerOptions.Value,
+            healthService)
+    {
+        this.timeProvider = timeProvider;
+        this.workerOptions = workerOptions.Value;
+    }
+
+    public override Task StartAsync(
+        CancellationToken cancellationToken)
+    {
+        return base.StartAsync(cancellationToken);
+    }
+
+    public override Task StopAsync(
+        CancellationToken cancellationToken)
+    {
+        return base.StopAsync(cancellationToken);
+    }
+
+    public override Task DoWorkAsync(
+        CancellationToken stoppingToken)
+    {
+        var isServiceRunning = healthService.IsServiceRunning(nameof(TimeFileWorker));
+
+        Directory.CreateDirectory(workerOptions.OutputDirectory);
+
+        var time = timeProvider.UtcNow;
+
+        var outFile = Path.Combine(
+            workerOptions.OutputDirectory,
+            $"{nameof(TimeFileScheduleWorker)}.txt");
+
+        return File.AppendAllLinesAsync(
+            outFile,
+            contents: [$"{time:yyyy-MM-dd HH:mm:ss} - {ServiceName} - IsRunning={isServiceRunning}"],
+            stoppingToken);
     }
 
     protected override Task OnExceptionAsync(
