@@ -13,6 +13,14 @@
     <NeutralLanguage>en</NeutralLanguage>
     <DefaultLanguage>en-US</DefaultLanguage>
   </PropertyGroup>
+  
+  <PropertyGroup Label="Versioning">
+    <!-- The 'x-release-please-' comments are used to inform the release-please action that it should update the semver version here -->
+    <!-- x-release-please-start-version -->
+    <Version>1.0.53</Version>
+    <!-- x-release-please-end -->
+    <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
 
   <PropertyGroup Label="Compile settings">
     <Nullable>enable</Nullable>
@@ -43,10 +51,10 @@
   <ItemGroup Label="Code Analyzers">
     <PackageReference Include="AsyncFixer" Version="1.6.0" PrivateAssets="All" />
     <PackageReference Include="Asyncify" Version="0.9.7" PrivateAssets="All" />
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.162" PrivateAssets="All" />
+    <PackageReference Include="Meziantou.Analyzer" Version="2.0.169" PrivateAssets="All" />
     <PackageReference Include="SecurityCodeScan.VS2019" Version="5.6.7" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435" PrivateAssets="All" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.30.0.95878" PrivateAssets="All" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.32.0.97167" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

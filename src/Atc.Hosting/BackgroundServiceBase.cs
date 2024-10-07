@@ -192,6 +192,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
             {
                 try
                 {
+                    healthService.SetRunningState(ServiceName, isRunning: true);
                     await DoWorkAsync(stoppingToken).ConfigureAwait(false);
                     healthService.SetRunningState(ServiceName, isRunning: true);
                 }

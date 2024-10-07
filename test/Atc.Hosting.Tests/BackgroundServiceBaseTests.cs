@@ -1,6 +1,6 @@
 namespace Atc.Hosting.Tests;
 
-public class BackgroundServiceBaseTests
+public sealed class BackgroundServiceBaseTests
 {
     [Fact]
     public void StartAsync_Returns_CompletedTask_If_LongRunningTask_Is_Incomplete()
@@ -88,7 +88,6 @@ public class BackgroundServiceBaseTests
     }
 
     [Fact]
-    [SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "OK - for testing.")]
     public async Task Logging_Start_Retry_Cancel_Stop()
     {
         // Arrange
@@ -111,6 +110,8 @@ public class BackgroundServiceBaseTests
             new OptionsWrapper<MyServiceOptions>(options),
             tcs.Task);
 
+        var serviceName = sut.ServiceName;
+
         // Act
         await sut.StartAsync(cts.Token);
 
@@ -123,23 +124,23 @@ public class BackgroundServiceBaseTests
                 logger
                     .Log(
                         LogLevel.Information,
-                        $"Started worker {sut.ServiceName}. Worker will run with {options.RepeatIntervalSeconds} seconds interval");
+                        $"Started worker {serviceName}. Worker will run with {options.RepeatIntervalSeconds} seconds interval");
 
                 logger
                     .Log(
                         LogLevel.Warning,
-                        $"Unhandled exception occurred in worker {sut.ServiceName}. Worker will retry after {options.RepeatIntervalSeconds} seconds",
+                        $"Unhandled exception occurred in worker {serviceName}. Worker will retry after {options.RepeatIntervalSeconds} seconds",
                         exception);
 
                 logger
                     .Log(
                         LogLevel.Warning,
-                        $"Cancellation invoked for worker {sut.ServiceName}");
+                        $"Cancellation invoked for worker {serviceName}");
 
                 logger
                     .Log(
                         LogLevel.Information,
-                        $"Stopped worker {sut.ServiceName}");
+                        $"Stopped worker {serviceName}");
             });
     }
 
@@ -166,6 +167,8 @@ public class BackgroundServiceBaseTests
             new OptionsWrapper<MyServiceOptions>(options),
             tcs.Task);
 
+        var serviceName = sut.ServiceName;
+
         // Act
         await sut.StartAsync(cts.Token);
 
@@ -178,23 +181,22 @@ public class BackgroundServiceBaseTests
                 logger
                     .Log(
                         LogLevel.Information,
-                        $"Started worker {sut.ServiceName}. Worker will run with {options.RepeatIntervalSeconds} seconds interval");
+                        $"Started worker {serviceName}. Worker will run with {options.RepeatIntervalSeconds} seconds interval");
 
                 logger
                     .Log(
                         LogLevel.Error,
-                        $"Unhandled exception occurred in worker {sut.ServiceName}",
+                        $"Unhandled exception occurred in worker {serviceName}",
                         exception);
 
                 logger
                     .Log(
                         LogLevel.Information,
-                        $"Stopped worker {sut.ServiceName}");
+                        $"Stopped worker {serviceName}");
             });
     }
 
     [Fact]
-    [SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "OK - for testing.")]
     public async Task HealthService_Start_Retry_Cancel_Stop()
     {
         // Arrange
@@ -219,6 +221,8 @@ public class BackgroundServiceBaseTests
             healthService,
             tcs.Task);
 
+        var serviceName = sut.ServiceName;
+
         // Act
         await sut.StartAsync(cts.Token);
 
@@ -228,8 +232,10 @@ public class BackgroundServiceBaseTests
         Received.InOrder(
             () =>
             {
-                healthService.SetRunningState(sut.ServiceName, true);
-                healthService.SetRunningState(sut.ServiceName, false);
+                healthService.SetRunningState(serviceName, true);
+                healthService.SetRunningState(serviceName, true);
+                healthService.SetRunningState(serviceName, true);
+                healthService.SetRunningState(serviceName, false);
             });
     }
 
@@ -258,6 +264,8 @@ public class BackgroundServiceBaseTests
             healthService,
             tcs.Task);
 
+        var serviceName = sut.ServiceName;
+
         // Act
         await sut.StartAsync(cts.Token);
 
@@ -267,8 +275,9 @@ public class BackgroundServiceBaseTests
         Received.InOrder(
             () =>
             {
-                healthService.SetRunningState(sut.ServiceName, true);
-                healthService.SetRunningState(sut.ServiceName, false);
+                healthService.SetRunningState(serviceName, true);
+                healthService.SetRunningState(serviceName, true);
+                healthService.SetRunningState(serviceName, false);
             });
     }
 }
