@@ -88,7 +88,6 @@ public class BackgroundServiceBaseTests
     }
 
     [Fact]
-    [SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "OK - for testing.")]
     public async Task Logging_Start_Retry_Cancel_Stop()
     {
         // Arrange
@@ -194,7 +193,6 @@ public class BackgroundServiceBaseTests
     }
 
     [Fact]
-    [SuppressMessage("Usage", "CA2201:Do not raise reserved exception types", Justification = "OK - for testing.")]
     public async Task HealthService_Start_Retry_Cancel_Stop()
     {
         // Arrange

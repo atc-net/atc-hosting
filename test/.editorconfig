@@ -55,3 +55,4 @@ dotnet_diagnostic.SA1133.severity = none            # https://github.com/atc-net
 ##########################################
 
 dotnet_diagnostic.CA1062.severity = none            # Validate arguments of public methods
+dotnet_diagnostic.CA2201.severity = none            # Do not raise reserved exception types
