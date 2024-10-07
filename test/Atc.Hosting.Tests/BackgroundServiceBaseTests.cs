@@ -1,6 +1,6 @@
 namespace Atc.Hosting.Tests;
 
-public class BackgroundServiceBaseTests
+public sealed class BackgroundServiceBaseTests
 {
     [Fact]
     public void StartAsync_Returns_CompletedTask_If_LongRunningTask_Is_Incomplete()
