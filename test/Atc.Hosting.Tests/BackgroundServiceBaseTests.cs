@@ -229,6 +229,7 @@ public class BackgroundServiceBaseTests
             () =>
             {
                 healthService.SetRunningState(sut.ServiceName, true);
+                healthService.SetRunningState(sut.ServiceName, true);
                 healthService.SetRunningState(sut.ServiceName, false);
             });
     }
@@ -267,6 +268,7 @@ public class BackgroundServiceBaseTests
         Received.InOrder(
             () =>
             {
+                healthService.SetRunningState(sut.ServiceName, true);
                 healthService.SetRunningState(sut.ServiceName, true);
                 healthService.SetRunningState(sut.ServiceName, false);
             });
