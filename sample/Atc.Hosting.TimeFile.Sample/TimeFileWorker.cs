@@ -23,12 +23,14 @@ public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
     public override Task StartAsync(
         CancellationToken cancellationToken)
     {
+        logger.LogInformation("Started");
         return base.StartAsync(cancellationToken);
     }
 
     public override Task StopAsync(
         CancellationToken cancellationToken)
     {
+        logger.LogInformation("Stopped");
         return base.StopAsync(cancellationToken);
     }
 
