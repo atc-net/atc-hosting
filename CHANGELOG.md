@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0](https://github.com/atc-net/atc-hosting/compare/v1.1.0...v2.0.0) (2024-12-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* add optional servicename to backgroundserviceoptions
+
+### Features
+
+* add optional servicename to backgroundserviceoptions ([47bc37a](https://github.com/atc-net/atc-hosting/commit/47bc37a663e790edf9c55dd928c2a53d7ce61434))
+
+
+### Bug Fixes
+
+* **deps:** update System.Text.Json transitive dependency to fix security vulenrability ([a61ede8](https://github.com/atc-net/atc-hosting/commit/a61ede8c668bd4fb8ac5390081a2ac9964aac943))
+
 ## [1.1.0](https://github.com/atc-net/atc-hosting/compare/v1.0.53...v1.1.0) (2024-10-07)
 
 
