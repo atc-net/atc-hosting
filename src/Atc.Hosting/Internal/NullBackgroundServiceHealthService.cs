@@ -5,7 +5,7 @@ internal sealed class NullBackgroundServiceHealthService : IBackgroundServiceHea
     /// <summary>
     /// Returns static instance of <see cref="NullBackgroundServiceHealthService"/>
     /// </summary>
-    public static NullBackgroundServiceHealthService Instance => new NullBackgroundServiceHealthService();
+    public static NullBackgroundServiceHealthService Instance => new();
 
     private NullBackgroundServiceHealthService()
     {
