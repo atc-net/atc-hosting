@@ -3,7 +3,7 @@ namespace Atc.Hosting;
 /// <summary>
 /// The interface definition for BackgroundServiceOptions used in <see cref="BackgroundServiceBase{T}"/>.
 /// </summary>
-public interface IBackgroundServiceOptions
+public interface IBackgroundServiceOptions : IBackgroundServiceBaseOptions
 {
     /// <summary>
     /// Defines the delay period before the first unit of work.

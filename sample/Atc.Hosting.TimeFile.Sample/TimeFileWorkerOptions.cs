@@ -10,6 +10,8 @@ public class TimeFileWorkerOptions : IBackgroundServiceOptions
 
     public ushort RepeatIntervalSeconds { get; set; } = 20;
 
+    public string? ServiceName { get; set; }
+
     public override string ToString()
-        => $"{nameof(OutputDirectory)}: {OutputDirectory}, {nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}";
+        => $"{nameof(OutputDirectory)}: {OutputDirectory}, {nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(ServiceName)}: {ServiceName}";
 }

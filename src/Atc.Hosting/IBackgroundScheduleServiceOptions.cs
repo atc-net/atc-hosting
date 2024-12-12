@@ -36,7 +36,7 @@ namespace Atc.Hosting;
 /// </item>
 /// </list>
 /// </remarks>
-public interface IBackgroundScheduleServiceOptions
+public interface IBackgroundScheduleServiceOptions : IBackgroundServiceBaseOptions
 {
     /// <summary>
     /// Gets the cron expression for scheduling.

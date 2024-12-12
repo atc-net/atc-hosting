@@ -16,7 +16,7 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ServiceOptions = backgroundScheduleServiceOptions ?? throw new ArgumentNullException(nameof(backgroundScheduleServiceOptions));
         this.healthService = healthService ?? throw new ArgumentNullException(nameof(healthService));
-        ServiceName = typeof(T).Name;
+        ServiceName = backgroundScheduleServiceOptions.ServiceName ?? typeof(T).Name;
     }
 
     /// <summary>

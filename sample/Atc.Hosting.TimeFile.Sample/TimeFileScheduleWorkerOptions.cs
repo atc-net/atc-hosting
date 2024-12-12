@@ -8,6 +8,8 @@ public class TimeFileScheduleWorkerOptions : IBackgroundScheduleServiceOptions
 
     public string CronExpression { get; set; } = "*/5 * * * *";
 
+    public string? ServiceName { get; set; }
+
     public override string ToString()
-        => $"{nameof(OutputDirectory)}: {OutputDirectory}, {nameof(CronExpression)}: {CronExpression}";
+        => $"{nameof(OutputDirectory)}: {OutputDirectory}, {nameof(CronExpression)}: {CronExpression}, {nameof(ServiceName)}: {ServiceName}";
 }

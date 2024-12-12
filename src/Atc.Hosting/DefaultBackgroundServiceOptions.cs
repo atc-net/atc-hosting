@@ -15,7 +15,15 @@ public class DefaultBackgroundServiceOptions : IBackgroundServiceOptions
     /// </summary>
     public ushort RepeatIntervalSeconds { get; set; } = 30;
 
+    /// <summary>
+    /// Gets or sets the name of the service.
+    /// </summary>
+    /// <value>
+    /// The name of the service.
+    /// </value>
+    public string? ServiceName { get; set; }
+
     /// <inheritdoc />
     public override string ToString()
-        => $"{nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}";
+        => $"{nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(ServiceName)}: {ServiceName}";
 }
