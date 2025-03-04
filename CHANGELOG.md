@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/atc-net/atc-hosting/compare/v2.0.0...v2.0.1) (2025-03-04)
+
+
+### Bug Fixes
+
+* update logging in unhandled exception scenarios ([9968703](https://github.com/atc-net/atc-hosting/commit/9968703a8f5d8ea965abb8f149556307d27f9f0e))
+
 ## [2.0.0](https://github.com/atc-net/atc-hosting/compare/v1.1.0...v2.0.0) (2024-12-12)
 
 
