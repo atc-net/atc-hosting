@@ -9,7 +9,7 @@ internal static partial class LoggerExtensions
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Started,
         Level = LogLevel.Information,
-        Message = "Started worker {serviceName}. Worker will run with {repeatIntervalSeconds} seconds interval",
+        Message = "Started worker {ServiceName}. Worker will run with {RepeatIntervalSeconds} seconds interval",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceStarted(
         this ILogger logger,
@@ -19,7 +19,7 @@ internal static partial class LoggerExtensions
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Started,
         Level = LogLevel.Information,
-        Message = "Started worker {serviceName}. Worker will run with cron expression {cronExpression}",
+        Message = "Started worker {ServiceName}. Worker will run with cron expression {CronExpression}",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceStarted(
         this ILogger logger,
@@ -29,7 +29,7 @@ internal static partial class LoggerExtensions
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Stopped,
         Level = LogLevel.Information,
-        Message = "Stopped worker {serviceName}",
+        Message = "Stopped worker {ServiceName}",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceStopped(
         this ILogger logger,
@@ -38,7 +38,7 @@ internal static partial class LoggerExtensions
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Cancelled,
         Level = LogLevel.Warning,
-        Message = "Cancellation invoked for worker {serviceName}",
+        Message = "Cancellation invoked for worker {ServiceName}",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceCancelled(
         this ILogger logger,
@@ -46,33 +46,31 @@ internal static partial class LoggerExtensions
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Retrying,
-        Level = LogLevel.Warning,
-        Message = "Unhandled exception occurred in worker {serviceName}. Worker will retry after {repeatIntervalSeconds} seconds",
+        Level = LogLevel.Information,
+        Message = "Worker {ServiceName} will retry after {RepeatIntervalSeconds} seconds",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceRetrying(
         this ILogger logger,
         string serviceName,
-        int repeatIntervalSeconds,
-        Exception exception);
+        int repeatIntervalSeconds);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Retrying,
-        Level = LogLevel.Warning,
-        Message = "Unhandled exception occurred in worker {serviceName}. Worker will retry on next defined in cron expression {cronExpression}",
+        Level = LogLevel.Information,
+        Message = "Worker {ServiceName} will retry on next occurence pr the cron expression {CronExpression}",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceRetrying(
         this ILogger logger,
         string serviceName,
-        string cronExpression,
-        Exception exception);
+        string cronExpression);
 
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.UnhandledException,
         Level = LogLevel.Error,
-        Message = "Unhandled exception occurred in worker {serviceName}",
+        Message = "Unhandled exception occurred in worker {ServiceName}",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceUnhandledException(
         this ILogger logger,
-        string serviceName,
-        Exception exception);
+        Exception exception,
+        string serviceName);
 }

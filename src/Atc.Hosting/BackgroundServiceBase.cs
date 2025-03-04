@@ -168,7 +168,11 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     protected virtual Task OnExceptionAsync(
         Exception exception,
         CancellationToken stoppingToken)
-        => Task.CompletedTask;
+    {
+        logger.LogBackgroundServiceUnhandledException(exception, ServiceName);
+
+        return Task.CompletedTask;
+    }
 
     /// <inheritdoc />
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "OK - by design.")]
@@ -204,8 +208,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
 
                     logger.LogBackgroundServiceRetrying(
                         ServiceName,
-                        ServiceOptions.RepeatIntervalSeconds,
-                        ex);
+                        ServiceOptions.RepeatIntervalSeconds);
                 }
 
                 await Task
@@ -219,7 +222,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
         }
         catch (Exception ex)
         {
-            logger.LogBackgroundServiceUnhandledException(ServiceName, ex);
+            logger.LogBackgroundServiceUnhandledException(ex, ServiceName);
         }
         finally
         {
