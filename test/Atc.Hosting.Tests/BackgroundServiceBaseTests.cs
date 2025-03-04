@@ -128,9 +128,8 @@ public sealed class BackgroundServiceBaseTests
 
                 logger
                     .Log(
-                        LogLevel.Warning,
-                        $"Unhandled exception occurred in worker {serviceName}. Worker will retry after {options.RepeatIntervalSeconds} seconds",
-                        exception);
+                        LogLevel.Information,
+                        $"Worker {serviceName} will retry after {options.RepeatIntervalSeconds} seconds");
 
                 logger
                     .Log(
