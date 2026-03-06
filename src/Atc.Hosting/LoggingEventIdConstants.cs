@@ -9,5 +9,6 @@ public static class LoggingEventIdConstants
         public const int Stopped = 20002;
         public const int Cancelled = 20003;
         public const int UnhandledException = 20004;
+        public const int Stopping = 20005;
     }
 }
