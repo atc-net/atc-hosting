@@ -57,7 +57,7 @@ internal static partial class LoggerExtensions
     [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Retrying,
         Level = LogLevel.Information,
-        Message = "Worker {ServiceName} will retry on next occurence pr the cron expression {CronExpression}",
+        Message = "Worker {ServiceName} will retry on next occurrence per the cron expression {CronExpression}",
         SkipEnabledCheck = false)]
     internal static partial void LogBackgroundServiceRetrying(
         this ILogger logger,
