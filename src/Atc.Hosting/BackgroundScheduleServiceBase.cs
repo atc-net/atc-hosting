@@ -218,7 +218,8 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
                 }
                 else
                 {
-                    nextOccurrence = cronExpression.GetNextOccurrence(DateTime.UtcNow);
+                    logger.LogBackgroundServiceStopping(ServiceOptions.CronExpression, ServiceName);
+                    break;
                 }
             }
         }

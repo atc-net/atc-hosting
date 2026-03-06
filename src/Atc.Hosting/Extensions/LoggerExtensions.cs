@@ -36,6 +36,16 @@ internal static partial class LoggerExtensions
         string serviceName);
 
     [LoggerMessage(
+        EventId = LoggingEventIdConstants.BackgroundService.Stopping,
+        Level = LogLevel.Warning,
+        Message = "No next occurrence found for cron expression '{CronExpression}'. Service {ServiceName} will stop",
+        SkipEnabledCheck = false)]
+    internal static partial void LogBackgroundServiceStopping(
+        this ILogger logger,
+        string cronExpression,
+        string serviceName);
+
+    [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Cancelled,
         Level = LogLevel.Warning,
         Message = "Cancellation invoked for worker {ServiceName}",
