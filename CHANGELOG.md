@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.2](https://github.com/atc-net/atc-hosting/compare/v2.0.1...v2.0.2) (2026-03-06)
+
+
+### Bug Fixes
+
+* **logger:** correct occurrence spelling in retry log message ([2d179ad](https://github.com/atc-net/atc-hosting/commit/2d179ad8d4022a92afe69678e7a13e14f41dbf51))
+* **scheduler:** stop service when cron expression has no next occurrence ([9f5e82f](https://github.com/atc-net/atc-hosting/commit/9f5e82f4f191f330be0af170fc504ed84572efcc))
+
 ## [2.0.1](https://github.com/atc-net/atc-hosting/compare/v2.0.0...v2.0.1) (2025-03-04)
 
 
