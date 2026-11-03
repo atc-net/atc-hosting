@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/sample/">
+    <Project Path="sample/Atc.Hosting.TimeFile.Sample/Atc.Hosting.TimeFile.Sample.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Atc.Hosting/Atc.Hosting.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Atc.Hosting.Tests/Atc.Hosting.Tests.csproj" />
+  </Folder>
+</Solution>

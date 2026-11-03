@@ -51,3 +51,4 @@ dotnet_diagnostic.CA1852.severity = none            # Seal internal types
 
 dotnet_diagnostic.MA0076.severity = none            # Do not use implicit culture-sensitive ToString in interpolated strings
 dotnet_diagnostic.CA1848.severity = none            # Performance logging
+dotnet_diagnostic.S5443.severity = none             # Use a directory that is not publicly writable (the sample writes demo files to the temp folder)

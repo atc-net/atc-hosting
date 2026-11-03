@@ -3,7 +3,7 @@ namespace Atc.Hosting.Tests;
 public sealed class BackgroundServiceBaseTests
 {
     [Fact]
-    public void StartAsync_Returns_CompletedTask_If_LongRunningTask_Is_Incomplete()
+    public async Task StartAsync_Returns_CompletedTask_If_LongRunningTask_Is_Incomplete()
     {
         // Arrange
         var tcs = new TaskCompletionSource<object>();
@@ -22,14 +22,15 @@ public sealed class BackgroundServiceBaseTests
 
         // Complete the task
         tcs.TrySetResult(null!);
+        await actual;
     }
 
     [Fact]
-    public void StartAsync_Returns_CompletedTask_If_Cancelled()
+    public async Task StartAsync_Returns_CompletedTask_If_Cancelled()
     {
         // Arrange
         var tcs = new TaskCompletionSource<object>();
-        tcs.TrySetCanceled();
+        tcs.TrySetCanceled(TestContext.Current.CancellationToken);
 
         using var sut = new MyWorkerService(
             new NullLogger<MyWorkerService>(),
@@ -42,6 +43,7 @@ public sealed class BackgroundServiceBaseTests
         // Assert
         Assert.True(actual.IsCompleted);
         Assert.True(tcs.Task.IsCompleted);
+        await actual;
     }
 
     [Fact]
@@ -115,7 +117,7 @@ public sealed class BackgroundServiceBaseTests
         // Act
         await sut.StartAsync(cts.Token);
 
-        await Task.Delay(2000);
+        await Task.Delay(2000, TestContext.Current.CancellationToken);
 
         // Assert
         Received.InOrder(
@@ -171,7 +173,7 @@ public sealed class BackgroundServiceBaseTests
         // Act
         await sut.StartAsync(cts.Token);
 
-        await Task.Delay(2000);
+        await Task.Delay(2000, TestContext.Current.CancellationToken);
 
         // Assert
         Received.InOrder(
@@ -225,7 +227,7 @@ public sealed class BackgroundServiceBaseTests
         // Act
         await sut.StartAsync(cts.Token);
 
-        await Task.Delay(3000);
+        await Task.Delay(3000, TestContext.Current.CancellationToken);
 
         // Assert
         Received.InOrder(
@@ -268,7 +270,7 @@ public sealed class BackgroundServiceBaseTests
         // Act
         await sut.StartAsync(cts.Token);
 
-        await Task.Delay(2000);
+        await Task.Delay(2000, TestContext.Current.CancellationToken);
 
         // Assert
         Received.InOrder(

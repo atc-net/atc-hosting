@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-	<PackageId>Atc.Hosting</PackageId>
+    <PackageId>Atc.Hosting</PackageId>
     <PackageTags>hosting;backgroundservice</PackageTags>
     <Description>Atc.Hosting is a collection of classes and extension methods for the hosting namespace, e.g. BackgroundServices.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -14,10 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Atc" Version="2.0.525" />
-    <PackageReference Include="Cronos" Version="0.9.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Atc" Version="4.0.0" />
+    <PackageReference Include="Cronos" Version="0.13.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
   </ItemGroup>
 
 </Project>
