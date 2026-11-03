@@ -73,8 +73,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     /// Initializes a new instance of the <see cref="BackgroundServiceBase{T}" /> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
-    protected BackgroundServiceBase(
-        ILogger<T> logger)
+    protected BackgroundServiceBase(ILogger<T> logger)
         : this(
             logger,
             new DefaultBackgroundServiceOptions(),
@@ -135,6 +134,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
     [SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "OK.")]
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "OK.")]
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1304:Non-private readonly fields should begin with upper-case letter", Justification = "OK - protected fields are part of the public API.")]
     protected readonly ILogger<T> logger;
 
     /// <summary>
@@ -143,6 +143,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
     [SuppressMessage("Design", "CA1051:Do not declare visible instance fields", Justification = "OK.")]
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1401:Fields should be private", Justification = "OK.")]
+    [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1304:Non-private readonly fields should begin with upper-case letter", Justification = "OK - protected fields are part of the public API.")]
     protected readonly IBackgroundServiceHealthService healthService;
 
     /// <summary>
@@ -152,8 +153,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     /// </summary>
     /// <param name="stoppingToken">The stopping token.</param>
     /// <returns>The Task of the workload.</returns>
-    public abstract Task DoWorkAsync(
-        CancellationToken stoppingToken);
+    public abstract Task DoWorkAsync(CancellationToken stoppingToken);
 
     /// <summary>
     /// Hook for manual handling of exceptions before wait and retry.
@@ -176,8 +176,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
 
     /// <inheritdoc />
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "OK - by design.")]
-    protected override async Task ExecuteAsync(
-        CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // Awaiting Task.Yield() transitions to asynchronous operation immediately.
         // This allows startup to continue without waiting.

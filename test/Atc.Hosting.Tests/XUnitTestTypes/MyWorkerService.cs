@@ -35,12 +35,10 @@ public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
             ? throw exception
             : Task.CompletedTask;
 
-    public override Task DoWorkAsync(
-        CancellationToken stoppingToken)
+    public override Task DoWorkAsync(CancellationToken stoppingToken)
         => ExecuteCore(stoppingToken);
 
-    private async Task ExecuteCore(
-        CancellationToken stoppingToken)
+    private async Task ExecuteCore(CancellationToken stoppingToken)
     {
         var currentTask = await Task.WhenAny(
             longRunningTask,

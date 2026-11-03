@@ -13,12 +13,16 @@ internal sealed class NullBackgroundServiceHealthService : IBackgroundServiceHea
 
     public bool IsServiceRunning(string serviceName) => false;
 
-    public void SetMaxStalenessInSeconds(string serviceName, ushort seconds)
+    public void SetMaxStalenessInSeconds(
+        string serviceName,
+        ushort seconds)
     {
         // Method intentionally left empty.
     }
 
-    public void SetRunningState(string serviceName, bool isRunning)
+    public void SetRunningState(
+        string serviceName,
+        bool isRunning)
     {
         // Method intentionally left empty.
     }

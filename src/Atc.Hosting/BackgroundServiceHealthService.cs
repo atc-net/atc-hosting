@@ -12,8 +12,7 @@ public sealed class BackgroundServiceHealthService : IBackgroundServiceHealthSer
     private readonly ConcurrentDictionary<string, (bool IsRunning, DateTime LastUpdated)> serviceStates = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, ushort> maxStalenessInSeconds = new(StringComparer.Ordinal);
 
-    public BackgroundServiceHealthService(
-        ITimeProvider timeProvider)
+    public BackgroundServiceHealthService(ITimeProvider timeProvider)
     {
         this.timeProvider = timeProvider;
     }
@@ -30,8 +29,7 @@ public sealed class BackgroundServiceHealthService : IBackgroundServiceHealthSer
         bool isRunning)
         => serviceStates[serviceName] = (isRunning, timeProvider.UtcNow);
 
-    public bool IsServiceRunning(
-        string serviceName)
+    public bool IsServiceRunning(string serviceName)
     {
         if (!serviceStates.TryGetValue(serviceName, out var state) ||
             !state.IsRunning)

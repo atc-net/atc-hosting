@@ -11,7 +11,9 @@ public class MyWorkerException : Exception
     {
     }
 
-    public MyWorkerException(string message, Exception innerException)
+    public MyWorkerException(
+        string message,
+        Exception innerException)
         : base(message, innerException)
     {
     }

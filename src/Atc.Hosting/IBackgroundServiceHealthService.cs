@@ -28,6 +28,5 @@ public interface IBackgroundServiceHealthService
     /// </summary>
     /// <param name="serviceName">Name of the service.</param>
     /// <returns>True if the service is running; otherwise, false.</returns>
-    bool IsServiceRunning(
-        string serviceName);
+    bool IsServiceRunning(string serviceName);
 }

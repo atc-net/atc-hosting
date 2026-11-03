@@ -20,22 +20,19 @@ public class TimeFileScheduleWorker : BackgroundScheduleServiceBase<TimeFileSche
         this.workerOptions = workerOptions.Value;
     }
 
-    public override Task StartAsync(
-        CancellationToken cancellationToken)
+    public override Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("Started");
         return base.StartAsync(cancellationToken);
     }
 
-    public override Task StopAsync(
-        CancellationToken cancellationToken)
+    public override Task StopAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("Stopped");
         return base.StopAsync(cancellationToken);
     }
 
-    public override Task DoWorkAsync(
-        CancellationToken stoppingToken)
+    public override Task DoWorkAsync(CancellationToken stoppingToken)
     {
         var isServiceRunning = healthService.IsServiceRunning(nameof(TimeFileWorker));
 
