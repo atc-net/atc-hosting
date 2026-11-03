@@ -3,6 +3,7 @@ namespace Atc.Hosting.Tests.XUnitTestTypes;
 public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
 {
     private readonly Task longRunningTask;
+    private int doWorkCallCount;
 
     public MyWorkerService(
         ILogger<MyWorkerService> logger,
@@ -35,8 +36,13 @@ public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
             ? throw exception
             : Task.CompletedTask;
 
+    public int DoWorkCallCount => Volatile.Read(ref doWorkCallCount);
+
     public override Task DoWorkAsync(CancellationToken stoppingToken)
-        => ExecuteCore(stoppingToken);
+    {
+        Interlocked.Increment(ref doWorkCallCount);
+        return ExecuteCore(stoppingToken);
+    }
 
     private async Task ExecuteCore(CancellationToken stoppingToken)
     {

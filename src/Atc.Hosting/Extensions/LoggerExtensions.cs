@@ -27,6 +27,15 @@ internal static partial class LoggerExtensions
         string cronExpression);
 
     [LoggerMessage(
+        EventId = LoggingEventIdConstants.BackgroundService.Disabled,
+        Level = LogLevel.Information,
+        Message = "Background service '{ServiceName}' is disabled and will not run",
+        SkipEnabledCheck = false)]
+    internal static partial void LogBackgroundServiceDisabled(
+        this ILogger logger,
+        string serviceName);
+
+    [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Stopped,
         Level = LogLevel.Information,
         Message = "Stopped worker {ServiceName}",

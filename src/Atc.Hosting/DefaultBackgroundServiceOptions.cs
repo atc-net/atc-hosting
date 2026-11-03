@@ -6,6 +6,11 @@ namespace Atc.Hosting;
 public class DefaultBackgroundServiceOptions : IBackgroundServiceOptions
 {
     /// <summary>
+    /// Gets or sets a value indicating whether the service is enabled - the default value is true.
+    /// </summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
     /// Defines the delay period before the first unit of work - the default value is 1.
     /// </summary>
     public ushort StartupDelaySeconds { get; set; } = 1;
@@ -14,6 +19,12 @@ public class DefaultBackgroundServiceOptions : IBackgroundServiceOptions
     /// Defines the period between the end of one unit of work and the start of the next - the default value is 30.
     /// </summary>
     public ushort RepeatIntervalSeconds { get; set; } = 30;
+
+    /// <summary>
+    /// Gets or sets the maximum duration, in seconds, of a single unit of work before the service is reported as not running
+    /// - the default value is null (no limit).
+    /// </summary>
+    public ushort? MaxWorkDurationSeconds { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the service.
@@ -25,5 +36,5 @@ public class DefaultBackgroundServiceOptions : IBackgroundServiceOptions
 
     /// <inheritdoc />
     public override string ToString()
-        => $"{nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(ServiceName)}: {ServiceName}";
+        => $"{nameof(Enabled)}: {Enabled}, {nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(MaxWorkDurationSeconds)}: {MaxWorkDurationSeconds}, {nameof(ServiceName)}: {ServiceName}";
 }

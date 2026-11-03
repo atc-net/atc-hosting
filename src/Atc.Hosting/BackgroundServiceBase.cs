@@ -178,6 +178,12 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "OK - by design.")]
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!ServiceOptions.Enabled)
+        {
+            logger.LogBackgroundServiceDisabled(ServiceName);
+            return;
+        }
+
         logger.LogBackgroundServiceStarted(ServiceName, ServiceOptions.RepeatIntervalSeconds);
         healthService.SetRunningState(ServiceName, isRunning: true);
 

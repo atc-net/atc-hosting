@@ -241,6 +241,42 @@ public sealed class BackgroundServiceBaseTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WhenDisabled_DoesNotDoWorkOrReportRunning()
+    {
+        // Arrange
+        var logger = Substitute.For<MockLogger<MyWorkerService>>();
+        var options = new MyServiceOptions { Enabled = false, StartupDelaySeconds = 0 };
+        var healthService = Substitute.For<IBackgroundServiceHealthService>();
+
+        logger
+            .IsEnabled(default)
+            .ReturnsForAnyArgs(true);
+
+        using var sut = new MyWorkerService(
+            logger,
+            new OptionsWrapper<MyServiceOptions>(options),
+            healthService,
+            Task.CompletedTask);
+
+        // Act
+        await sut.StartAsync(CancellationToken.None);
+        await sut.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await sut.StopAsync(CancellationToken.None);
+
+        // Assert
+        Assert.True(sut.ExecuteTask.IsCompletedSuccessfully);
+        Assert.Equal(0, sut.DoWorkCallCount);
+        healthService
+            .DidNotReceiveWithAnyArgs()
+            .SetRunningState(default!, default);
+        logger
+            .Received(1)
+            .Log(
+                LogLevel.Information,
+                $"Background service '{sut.ServiceName}' is disabled and will not run");
+    }
+
+    [Fact]
     public async Task HealthService_Start_Exception_Stop()
     {
         // Arrange

@@ -174,6 +174,12 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "OK - by design.")]
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!ServiceOptions.Enabled)
+        {
+            logger.LogBackgroundServiceDisabled(ServiceName);
+            return;
+        }
+
         logger.LogBackgroundServiceStarted(ServiceName, ServiceOptions.CronExpression);
         healthService.SetRunningState(ServiceName, isRunning: true);
 
