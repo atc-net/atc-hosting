@@ -174,10 +174,6 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
     [SuppressMessage("Design", "MA0051:Method is too long", Justification = "OK - by design.")]
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Awaiting Task.Yield() transitions to asynchronous operation immediately.
-        // This allows startup to continue without waiting.
-        await Task.Yield();
-
         logger.LogBackgroundServiceStarted(ServiceName, ServiceOptions.CronExpression);
         healthService.SetRunningState(ServiceName, isRunning: true);
 
