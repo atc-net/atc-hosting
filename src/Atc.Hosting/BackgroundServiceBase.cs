@@ -13,14 +13,17 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     /// <param name="logger">The logger.</param>
     /// <param name="backgroundServiceOptions">The background service options.</param>
     /// <param name="healthService">The background service health service.</param>
+    /// <param name="timeProvider">The time provider used for all delays and clock reads; <see cref="TimeProvider.System"/> when <see langword="null"/>.</param>
     protected BackgroundServiceBase(
         ILogger<T> logger,
         IBackgroundServiceOptions backgroundServiceOptions,
-        IBackgroundServiceHealthService healthService)
+        IBackgroundServiceHealthService healthService,
+        TimeProvider? timeProvider = null)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ServiceOptions = backgroundServiceOptions ?? throw new ArgumentNullException(nameof(backgroundServiceOptions));
         this.healthService = healthService ?? throw new ArgumentNullException(nameof(healthService));
+        TimeProvider = timeProvider ?? TimeProvider.System;
         ServiceName = backgroundServiceOptions.ServiceName ?? typeof(T).Name;
     }
 
@@ -129,6 +132,11 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
     public IBackgroundServiceOptions ServiceOptions { get; }
 
     /// <summary>
+    /// Gets the time provider used for all delays and clock reads in this service.
+    /// </summary>
+    protected TimeProvider TimeProvider { get; }
+
+    /// <summary>
     /// Logger for this service
     /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
@@ -190,7 +198,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
         try
         {
             await Task
-                .Delay(ServiceOptions.StartupDelaySeconds * 1_000, stoppingToken)
+                .Delay(TimeSpan.FromSeconds(ServiceOptions.StartupDelaySeconds), TimeProvider, stoppingToken)
                 .ConfigureAwait(false);
 
             while (!stoppingToken.IsCancellationRequested)
@@ -213,7 +221,7 @@ public abstract class BackgroundServiceBase<T> : BackgroundService
                 }
 
                 await Task
-                    .Delay(ServiceOptions.RepeatIntervalSeconds * 1_000, stoppingToken)
+                    .Delay(TimeSpan.FromSeconds(ServiceOptions.RepeatIntervalSeconds), TimeProvider, stoppingToken)
                     .ConfigureAwait(false);
             }
         }

@@ -8,14 +8,17 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
     /// <param name="logger">The logger.</param>
     /// <param name="backgroundScheduleServiceOptions">The background schedule service options.</param>
     /// <param name="healthService">The background service health service.</param>
+    /// <param name="timeProvider">The time provider used for all delays and clock reads; <see cref="TimeProvider.System"/> when <see langword="null"/>.</param>
     protected BackgroundScheduleServiceBase(
         ILogger<T> logger,
         IBackgroundScheduleServiceOptions backgroundScheduleServiceOptions,
-        IBackgroundServiceHealthService healthService)
+        IBackgroundServiceHealthService healthService,
+        TimeProvider? timeProvider = null)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ServiceOptions = backgroundScheduleServiceOptions ?? throw new ArgumentNullException(nameof(backgroundScheduleServiceOptions));
         this.healthService = healthService ?? throw new ArgumentNullException(nameof(healthService));
+        TimeProvider = timeProvider ?? TimeProvider.System;
         ServiceName = backgroundScheduleServiceOptions.ServiceName ?? typeof(T).Name;
     }
 
@@ -124,6 +127,11 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
     public IBackgroundScheduleServiceOptions ServiceOptions { get; }
 
     /// <summary>
+    /// Gets the time provider used for all delays and clock reads in this service.
+    /// </summary>
+    protected TimeProvider TimeProvider { get; }
+
+    /// <summary>
     /// Logger for this service
     /// </summary>
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "OK.")]
@@ -186,17 +194,17 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
         try
         {
             var cronExpression = CronExpression.Parse(ServiceOptions.CronExpression);
-            var nextOccurrence = cronExpression.GetNextOccurrence(DateTime.UtcNow);
+            var nextOccurrence = cronExpression.GetNextOccurrence(TimeProvider.GetUtcNow().UtcDateTime);
 
             while (!stoppingToken.IsCancellationRequested)
             {
                 if (nextOccurrence.HasValue)
                 {
-                    var delay = nextOccurrence.Value - DateTime.UtcNow;
+                    var delay = nextOccurrence.Value - TimeProvider.GetUtcNow().UtcDateTime;
 
                     if (delay > TimeSpan.Zero)
                     {
-                        await Task.Delay(delay, stoppingToken).ConfigureAwait(false);
+                        await Task.Delay(delay, TimeProvider, stoppingToken).ConfigureAwait(false);
                     }
 
                     try
@@ -215,7 +223,7 @@ public abstract class BackgroundScheduleServiceBase<T> : BackgroundService
                             ServiceOptions.CronExpression);
                     }
 
-                    nextOccurrence = cronExpression.GetNextOccurrence(DateTime.UtcNow);
+                    nextOccurrence = cronExpression.GetNextOccurrence(TimeProvider.GetUtcNow().UtcDateTime);
                 }
                 else
                 {

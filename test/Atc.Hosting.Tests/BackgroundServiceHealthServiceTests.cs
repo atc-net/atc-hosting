@@ -2,6 +2,8 @@ namespace Atc.Hosting.Tests;
 
 public sealed class BackgroundServiceHealthServiceTests
 {
+    private const ushort GracePeriodInSeconds = 1;
+
     [Theory]
     [InlineAutoNSubstituteData("TimeFileWorker")]
     public void SetMaxStalenessInSecondsTest(
@@ -30,77 +32,51 @@ public sealed class BackgroundServiceHealthServiceTests
     }
 
     [Theory]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, false)]
+    [InlineData("TimeFileWorker", true, true)]
+    [InlineData("TimeFileWorker", false, false)]
     public void SetRunningStateTest(
         string serviceName,
         bool expected,
-        bool isRunning,
-        [Frozen] ITimeProvider timeProvider)
+        bool isRunning)
     {
         // Arrange
-        var frozenTime = DateTime.UtcNow;
-
-        timeProvider
-            .UtcNow
-            .Returns(frozenTime);
-
-        var sut = new BackgroundServiceHealthService(timeProvider);
+        var sut = new BackgroundServiceHealthService(new FakeTimeProvider());
 
         // Act & Assert
         Assert.False(sut.IsServiceRunning(serviceName));
+
         sut.SetRunningState(serviceName, isRunning);
 
-        var fieldInfoForServiceStates = typeof(BackgroundServiceHealthService).GetField(
-            "serviceStates",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-
-        Assert.NotNull(fieldInfoForServiceStates);
-
-        var serviceStatesDict = (ConcurrentDictionary<string, (bool IsRunning, DateTime LastUpdated)>)fieldInfoForServiceStates.GetValue(sut)!;
-        Assert.True(serviceStatesDict.ContainsKey(serviceName));
-
-        var actual = serviceStatesDict[serviceName].IsRunning;
-
-        Assert.Equal(expected, actual);
-        Assert.NotEqual(DateTime.MinValue, serviceStatesDict[serviceName].LastUpdated);
+        Assert.Equal(expected, sut.IsServiceRunning(serviceName));
     }
 
     [Theory]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, null, null)]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, null, 2)]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, 2)]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, 1)]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, 0)]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)0, 0)]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)0, 1)]
-    [InlineAutoNSubstituteData("TimeFileWorker", true, true, (ushort)2, null)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, true, (ushort)2, 3)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, true, (ushort)0, 2)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, false, null, null)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, false, (ushort)2, 0)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, false, null, 2)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, false, (ushort)2, 3)]
-    [InlineAutoNSubstituteData("TimeFileWorker", false, false, (ushort)2, null)]
+    [InlineData("TimeFileWorker", true, true, null, null)]
+    [InlineData("TimeFileWorker", true, true, null, 2)]
+    [InlineData("TimeFileWorker", true, true, (ushort)2, 2)]
+    [InlineData("TimeFileWorker", true, true, (ushort)2, 1)]
+    [InlineData("TimeFileWorker", true, true, (ushort)2, 0)]
+    [InlineData("TimeFileWorker", true, true, (ushort)0, 0)]
+    [InlineData("TimeFileWorker", true, true, (ushort)0, 1)]
+    [InlineData("TimeFileWorker", true, true, (ushort)2, null)]
+    [InlineData("TimeFileWorker", false, true, (ushort)2, 3)]
+    [InlineData("TimeFileWorker", false, true, (ushort)0, 2)]
+    [InlineData("TimeFileWorker", false, false, null, null)]
+    [InlineData("TimeFileWorker", false, false, (ushort)2, 0)]
+    [InlineData("TimeFileWorker", false, false, null, 2)]
+    [InlineData("TimeFileWorker", false, false, (ushort)2, 3)]
+    [InlineData("TimeFileWorker", false, false, (ushort)2, null)]
     public void IsServiceRunningTest(
         string serviceName,
         bool expected,
         bool isRunning,
         ushort? maxStalenessInSeconds,
-        int? secondsToAdvance,
-        [Frozen] ITimeProvider timeProvider)
+        int? secondsToAdvance)
     {
         // Arrange
-        const ushort gracePeriodInSeconds = 1;
-        var frozenTime = DateTime.UtcNow;
-
-        timeProvider
-            .UtcNow
-            .Returns(frozenTime);
-
+        var timeProvider = new FakeTimeProvider();
         var sut = new BackgroundServiceHealthService(timeProvider);
 
-        // Act & Assert
         if (maxStalenessInSeconds.HasValue)
         {
             sut.SetMaxStalenessInSeconds(serviceName, maxStalenessInSeconds.Value);
@@ -108,22 +84,17 @@ public sealed class BackgroundServiceHealthServiceTests
 
         sut.SetRunningState(serviceName, isRunning);
 
+        // Act
         if (secondsToAdvance.HasValue)
         {
-            var fieldInfoForServiceStates = typeof(BackgroundServiceHealthService).GetField(
-                "serviceStates",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-
-            Assert.NotNull(fieldInfoForServiceStates);
-
-            var serviceStatesDict = (ConcurrentDictionary<string, (bool IsRunning, DateTime LastUpdated)>)fieldInfoForServiceStates.GetValue(sut)!;
-            Assert.True(serviceStatesDict.ContainsKey(serviceName));
-
-            var frozenTimeRewind = frozenTime.AddSeconds(-(secondsToAdvance.Value + gracePeriodInSeconds));
-
-            serviceStatesDict[serviceName] = (serviceStatesDict[serviceName].IsRunning, frozenTimeRewind);
+            timeProvider.Advance(TimeSpan.FromSeconds(secondsToAdvance.Value + GracePeriodInSeconds));
         }
 
+        // Assert
         Assert.Equal(expected, sut.IsServiceRunning(serviceName));
     }
+
+    [Fact]
+    public void Constructor_NullTimeProvider_Throws()
+        => Assert.Throws<ArgumentNullException>(() => new BackgroundServiceHealthService(null!));
 }

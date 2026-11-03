@@ -2,21 +2,19 @@ namespace Atc.Hosting.TimeFile.Sample;
 
 public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
 {
-    private readonly ITimeProvider timeProvider;
-
     private readonly TimeFileWorkerOptions workerOptions;
 
     public TimeFileWorker(
         ILogger<TimeFileWorker> logger,
         IBackgroundServiceHealthService healthService,
-        ITimeProvider timeProvider,
+        TimeProvider timeProvider,
         IOptions<TimeFileWorkerOptions> workerOptions)
         : base(
             logger,
             workerOptions.Value,
-            healthService)
+            healthService,
+            timeProvider)
     {
-        this.timeProvider = timeProvider;
         this.workerOptions = workerOptions.Value;
     }
 
@@ -38,7 +36,7 @@ public class TimeFileWorker : BackgroundServiceBase<TimeFileWorker>
 
         Directory.CreateDirectory(workerOptions.OutputDirectory);
 
-        var time = timeProvider.UtcNow;
+        var time = TimeProvider.GetUtcNow();
 
         var outFile = Path.Combine(
             workerOptions.OutputDirectory,

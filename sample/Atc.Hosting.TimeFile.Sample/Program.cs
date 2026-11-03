@@ -8,7 +8,7 @@ var host = Host
     .CreateDefaultBuilder(args)
     .ConfigureServices(services =>
     {
-        services.AddSingleton<ITimeProvider, SystemTimeProvider>();
+        services.AddSingleton(TimeProvider.System);
 
         services.Configure<TimeFileWorkerOptions>(configuration.GetSection(TimeFileWorkerOptions.SectionName));
         services.AddHostedService<TimeFileWorker>();
@@ -18,7 +18,7 @@ var host = Host
 
         services.AddSingleton<IBackgroundServiceHealthService, BackgroundServiceHealthService>(s =>
         {
-            var healthService = new BackgroundServiceHealthService(s.GetRequiredService<ITimeProvider>());
+            var healthService = new BackgroundServiceHealthService(s.GetRequiredService<TimeProvider>());
 
             var timeFileWorkerOptions = s.GetRequiredService<IOptions<TimeFileWorkerOptions>>().Value;
             healthService.SetMaxStalenessInSeconds(nameof(TimeFileWorker), timeFileWorkerOptions.RepeatIntervalSeconds);
