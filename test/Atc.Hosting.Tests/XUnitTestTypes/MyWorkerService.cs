@@ -29,6 +29,21 @@ public class MyWorkerService : BackgroundServiceBase<MyWorkerService>
         this.longRunningTask = longRunningTask;
     }
 
+    public MyWorkerService(
+        ILogger<MyWorkerService> logger,
+        IOptions<MyServiceOptions> serviceOptions,
+        IBackgroundServiceHealthService healthService,
+        TimeProvider timeProvider,
+        Task longRunningTask)
+        : base(
+            logger,
+            serviceOptions.Value,
+            healthService,
+            timeProvider)
+    {
+        this.longRunningTask = longRunningTask;
+    }
+
     protected override Task OnExceptionAsync(
         Exception exception,
         CancellationToken stoppingToken)

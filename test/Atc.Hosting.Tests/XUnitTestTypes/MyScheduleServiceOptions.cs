@@ -8,8 +8,10 @@ public class MyScheduleServiceOptions : IBackgroundScheduleServiceOptions
 
     public ushort? MaxWorkDurationSeconds { get; set; }
 
+    public ushort? MaxConsecutiveFailures { get; set; }
+
     public string? ServiceName { get; set; }
 
     public override string ToString()
-        => $"{nameof(Enabled)}: {Enabled}, {nameof(CronExpression)}: {CronExpression}, {nameof(MaxWorkDurationSeconds)}: {MaxWorkDurationSeconds}, {nameof(ServiceName)}: {ServiceName}";
+        => $"{nameof(Enabled)}: {Enabled}, {nameof(CronExpression)}: {CronExpression}, {nameof(MaxWorkDurationSeconds)}: {MaxWorkDurationSeconds}, {nameof(MaxConsecutiveFailures)}: {MaxConsecutiveFailures}, {nameof(ServiceName)}: {ServiceName}";
 }

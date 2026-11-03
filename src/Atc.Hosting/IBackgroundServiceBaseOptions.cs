@@ -32,4 +32,14 @@ public interface IBackgroundServiceBaseOptions
     /// When <see langword="null"/>, there is no limit, and a hung run keeps reporting the service as running.
     /// </remarks>
     public ushort? MaxWorkDurationSeconds { get; set; }
+
+    /// <summary>
+    /// Gets or sets the number of failed units of work in a row after which the service is reported as not running.
+    /// </summary>
+    /// <remarks>
+    /// A failed unit of work is a <c>DoWorkAsync</c> run that threw, was handled by <c>OnExceptionAsync</c>, and is retried.
+    /// When the number of failures in a row reaches this value, the service reports itself as not running until a run succeeds.
+    /// When <see langword="null"/> or 0, there is no limit, and a service that fails on every run keeps reporting itself as running.
+    /// </remarks>
+    public ushort? MaxConsecutiveFailures { get; set; }
 }

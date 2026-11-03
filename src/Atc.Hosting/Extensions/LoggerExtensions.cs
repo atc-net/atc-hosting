@@ -36,6 +36,35 @@ internal static partial class LoggerExtensions
         string serviceName);
 
     [LoggerMessage(
+        EventId = LoggingEventIdConstants.BackgroundService.WorkExceededMaxDuration,
+        Level = LogLevel.Warning,
+        Message = "Worker {ServiceName} has been running for more than {MaxWorkDurationSeconds} seconds and is reported as not running until the run completes",
+        SkipEnabledCheck = false)]
+    internal static partial void LogBackgroundServiceWorkExceededMaxDuration(
+        this ILogger logger,
+        string serviceName,
+        int maxWorkDurationSeconds);
+
+    [LoggerMessage(
+        EventId = LoggingEventIdConstants.BackgroundService.ConsecutiveFailures,
+        Level = LogLevel.Warning,
+        Message = "Worker {ServiceName} has failed {FailureCount} times in a row and is reported as not running until a run succeeds",
+        SkipEnabledCheck = false)]
+    internal static partial void LogBackgroundServiceConsecutiveFailures(
+        this ILogger logger,
+        string serviceName,
+        int failureCount);
+
+    [LoggerMessage(
+        EventId = LoggingEventIdConstants.BackgroundService.StopTimedOut,
+        Level = LogLevel.Warning,
+        Message = "Worker {ServiceName} did not stop within the shutdown timeout. Make sure DoWorkAsync observes the stopping token",
+        SkipEnabledCheck = false)]
+    internal static partial void LogBackgroundServiceStopTimedOut(
+        this ILogger logger,
+        string serviceName);
+
+    [LoggerMessage(
         EventId = LoggingEventIdConstants.BackgroundService.Stopped,
         Level = LogLevel.Information,
         Message = "Stopped worker {ServiceName}",

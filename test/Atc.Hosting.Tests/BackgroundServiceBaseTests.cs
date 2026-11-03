@@ -195,6 +195,10 @@ public sealed class BackgroundServiceBaseTests
                         LogLevel.Information,
                         $"Stopped worker {serviceName}");
             });
+
+        // A fatal failure is rethrown, so the host can apply its BackgroundServiceExceptionBehavior.
+        Assert.True(sut.ExecuteTask!.IsFaulted);
+        Assert.Same(exception, sut.ExecuteTask.Exception!.InnerException);
     }
 
     [Fact]
@@ -230,14 +234,12 @@ public sealed class BackgroundServiceBaseTests
         await Task.Delay(3000, TestContext.Current.CancellationToken);
 
         // Assert
-        Received.InOrder(
-            () =>
-            {
-                healthService.SetRunningState(serviceName, true);
-                healthService.SetRunningState(serviceName, true);
-                healthService.SetRunningState(serviceName, true);
-                healthService.SetRunningState(serviceName, false);
-            });
+        Assert.True(sut.ExecuteTask!.IsCompletedSuccessfully);
+        healthService
+            .Received()
+            .SetRunningState(serviceName, true);
+
+        AssertLastRunningState(healthService, serviceName, expected: false);
     }
 
     [Fact]
@@ -269,6 +271,7 @@ public sealed class BackgroundServiceBaseTests
         healthService
             .DidNotReceiveWithAnyArgs()
             .SetRunningState(default!, default);
+
         logger
             .Received(1)
             .Log(
@@ -309,12 +312,179 @@ public sealed class BackgroundServiceBaseTests
         await Task.Delay(2000, TestContext.Current.CancellationToken);
 
         // Assert
-        Received.InOrder(
-            () =>
-            {
-                healthService.SetRunningState(serviceName, true);
-                healthService.SetRunningState(serviceName, true);
-                healthService.SetRunningState(serviceName, false);
-            });
+        var executeException = await Assert.ThrowsAsync<MyWorkerException>(() => sut.ExecuteTask!);
+        Assert.Same(exception, executeException);
+        healthService
+            .Received()
+            .SetRunningState(serviceName, true);
+
+        AssertLastRunningState(healthService, serviceName, expected: false);
+    }
+
+    [Fact]
+    public async Task Heartbeat_LongRun_StaysRunning_WithStalenessEqualToRepeatInterval()
+    {
+        // Arrange - the README's manual pattern: staleness = RepeatIntervalSeconds
+        var timeProvider = new FakeTimeProvider();
+        var healthService = new BackgroundServiceHealthService(timeProvider);
+        var options = new MyServiceOptions { StartupDelaySeconds = 0, RepeatIntervalSeconds = 2 };
+        var neverCompletes = new TaskCompletionSource();
+
+        using var sut = new MyWorkerService(
+            NullLogger<MyWorkerService>.Instance,
+            new OptionsWrapper<MyServiceOptions>(options),
+            healthService,
+            timeProvider,
+            neverCompletes.Task);
+
+        healthService.SetMaxStalenessInSeconds(sut.ServiceName, options.RepeatIntervalSeconds);
+
+        // Act & Assert - a single run lasting 5x the repeat interval stays healthy
+        await sut.StartAsync(CancellationToken.None);
+        await TestWait.UntilAsync(() => sut.DoWorkCallCount == 1);
+
+        for (var i = 0; i < 10; i++)
+        {
+            timeProvider.Advance(TimeSpan.FromSeconds(1));
+            await TestWait.UntilAsync(() => healthService.IsServiceRunning(sut.ServiceName));
+        }
+
+        await sut.StopAsync(CancellationToken.None);
+        Assert.False(healthService.IsServiceRunning(sut.ServiceName));
+    }
+
+    [Fact]
+    public async Task Heartbeat_AfterStop_DoesNotReportRunningAgain()
+    {
+        // Arrange - real time, so the heartbeat ticks every second
+        var healthService = new BackgroundServiceHealthService(TimeProvider.System);
+        var options = new MyServiceOptions { StartupDelaySeconds = 0, RepeatIntervalSeconds = 2 };
+
+        using var sut = new MyWorkerService(
+            NullLogger<MyWorkerService>.Instance,
+            new OptionsWrapper<MyServiceOptions>(options),
+            healthService,
+            new TaskCompletionSource().Task);
+
+        // Act
+        await sut.StartAsync(CancellationToken.None);
+        await Task.Delay(1500, TestContext.Current.CancellationToken);
+        await sut.StopAsync(CancellationToken.None);
+        await Task.Delay(1500, TestContext.Current.CancellationToken);
+
+        // Assert
+        Assert.False(healthService.IsServiceRunning(sut.ServiceName));
+    }
+
+    [Fact]
+    public async Task MaxConsecutiveFailures_FailingWorker_IsReportedNotRunning()
+    {
+        // Arrange
+        var timeProvider = new FakeTimeProvider();
+        var logger = Substitute.For<MockLogger<MyWorkerService>>();
+        var healthService = new BackgroundServiceHealthService(timeProvider);
+        var options = new MyServiceOptions { StartupDelaySeconds = 0, RepeatIntervalSeconds = 1, MaxConsecutiveFailures = 2 };
+
+        logger
+            .IsEnabled(default)
+            .ReturnsForAnyArgs(true);
+
+        using var sut = new MyWorkerService(
+            logger,
+            new OptionsWrapper<MyServiceOptions>(options),
+            healthService,
+            timeProvider,
+            Task.FromException(new InvalidOperationException("Always fails")));
+
+        // Act
+        await sut.StartAsync(CancellationToken.None);
+        await TestWait.AdvanceUntilAsync(
+            timeProvider,
+            TimeSpan.FromSeconds(1),
+            () => sut.DoWorkCallCount >= 2 && !healthService.IsServiceRunning(sut.ServiceName));
+
+        await sut.StopAsync(CancellationToken.None);
+
+        // Assert
+        logger
+            .Received(1)
+            .Log(
+                LogLevel.Warning,
+                $"Worker {sut.ServiceName} has failed 2 times in a row and is reported as not running until a run succeeds");
+    }
+
+    [Fact]
+    public async Task StopAsync_WorkerIgnoresStoppingToken_LogsStopTimeoutWarning()
+    {
+        // Arrange
+        var logger = Substitute.For<MockLogger<MyTokenIgnoringWorkerService>>();
+        var options = new MyServiceOptions { StartupDelaySeconds = 0 };
+
+        logger
+            .IsEnabled(default)
+            .ReturnsForAnyArgs(true);
+
+        using var sut = new MyTokenIgnoringWorkerService(
+            logger,
+            new OptionsWrapper<MyServiceOptions>(options),
+            Substitute.For<IBackgroundServiceHealthService>());
+
+        await sut.StartAsync(CancellationToken.None);
+        await sut.WorkStarted.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        // Act - an already-cancelled token means the host's shutdown timeout has expired
+        await sut.StopAsync(new CancellationToken(canceled: true));
+
+        // Assert
+        logger
+            .Received(1)
+            .Log(
+                LogLevel.Warning,
+                $"Worker {sut.ServiceName} did not stop within the shutdown timeout. Make sure DoWorkAsync observes the stopping token");
+
+        sut.Release();
+        await sut.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task StopAsync_WorkerObservesStoppingToken_DoesNotLogStopTimeoutWarning()
+    {
+        // Arrange
+        var logger = Substitute.For<MockLogger<MyWorkerService>>();
+        var options = new MyServiceOptions { StartupDelaySeconds = 0 };
+
+        logger
+            .IsEnabled(default)
+            .ReturnsForAnyArgs(true);
+
+        using var sut = new MyWorkerService(
+            logger,
+            new OptionsWrapper<MyServiceOptions>(options),
+            new TaskCompletionSource().Task);
+
+        await sut.StartAsync(CancellationToken.None);
+        await TestWait.UntilAsync(() => sut.DoWorkCallCount == 1);
+
+        // Act
+        await sut.StopAsync(CancellationToken.None);
+
+        // Assert
+        logger
+            .DidNotReceive()
+            .Log(
+                LogLevel.Warning,
+                $"Worker {sut.ServiceName} did not stop within the shutdown timeout. Make sure DoWorkAsync observes the stopping token");
+    }
+
+    private static void AssertLastRunningState(
+        IBackgroundServiceHealthService healthService,
+        string serviceName,
+        bool expected)
+    {
+        var lastCall = healthService
+            .ReceivedCalls()
+            .Last(c => c.GetMethodInfo().Name == nameof(IBackgroundServiceHealthService.SetRunningState));
+
+        Assert.Equal([serviceName, expected], lastCall.GetArguments());
     }
 }

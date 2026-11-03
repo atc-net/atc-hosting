@@ -27,6 +27,12 @@ public class DefaultBackgroundServiceOptions : IBackgroundServiceOptions
     public ushort? MaxWorkDurationSeconds { get; set; }
 
     /// <summary>
+    /// Gets or sets the number of failed units of work in a row after which the service is reported as not running
+    /// - the default value is null (no limit).
+    /// </summary>
+    public ushort? MaxConsecutiveFailures { get; set; }
+
+    /// <summary>
     /// Gets or sets the name of the service.
     /// </summary>
     /// <value>
@@ -36,5 +42,5 @@ public class DefaultBackgroundServiceOptions : IBackgroundServiceOptions
 
     /// <inheritdoc />
     public override string ToString()
-        => $"{nameof(Enabled)}: {Enabled}, {nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(MaxWorkDurationSeconds)}: {MaxWorkDurationSeconds}, {nameof(ServiceName)}: {ServiceName}";
+        => $"{nameof(Enabled)}: {Enabled}, {nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(MaxWorkDurationSeconds)}: {MaxWorkDurationSeconds}, {nameof(MaxConsecutiveFailures)}: {MaxConsecutiveFailures}, {nameof(ServiceName)}: {ServiceName}";
 }

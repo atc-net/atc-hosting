@@ -7,11 +7,13 @@ public class MyScheduleWorkerService : BackgroundScheduleServiceBase<MyScheduleW
     public MyScheduleWorkerService(
         ILogger<MyScheduleWorkerService> logger,
         IOptions<MyScheduleServiceOptions> serviceOptions,
-        IBackgroundServiceHealthService healthService)
+        IBackgroundServiceHealthService healthService,
+        TimeProvider? timeProvider = null)
         : base(
             logger,
             serviceOptions.Value,
-            healthService)
+            healthService,
+            timeProvider)
     {
     }
 

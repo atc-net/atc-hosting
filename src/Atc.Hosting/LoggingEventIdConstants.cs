@@ -11,5 +11,8 @@ public static class LoggingEventIdConstants
         public const int UnhandledException = 20004;
         public const int Stopping = 20005;
         public const int Disabled = 20006;
+        public const int WorkExceededMaxDuration = 20007;
+        public const int StopTimedOut = 20008;
+        public const int ConsecutiveFailures = 20009;
     }
 }

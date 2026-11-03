@@ -55,7 +55,7 @@ public class TimeFileScheduleWorker : BackgroundScheduleServiceBase<TimeFileSche
         if (exception is IOException or UnauthorizedAccessException)
         {
             logger.LogCritical(exception, "Could not write file!");
-            return StopAsync(stoppingToken);
+            return Task.FromException(exception);
         }
 
         return base.OnExceptionAsync(exception, stoppingToken);

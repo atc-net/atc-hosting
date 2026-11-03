@@ -10,8 +10,10 @@ public class MyServiceOptions : IBackgroundServiceOptions
 
     public ushort? MaxWorkDurationSeconds { get; set; }
 
+    public ushort? MaxConsecutiveFailures { get; set; }
+
     public string? ServiceName { get; set; }
 
     public override string ToString()
-        => $"{nameof(Enabled)}: {Enabled}, {nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(MaxWorkDurationSeconds)}: {MaxWorkDurationSeconds}, {nameof(ServiceName)}: {ServiceName}";
+        => $"{nameof(Enabled)}: {Enabled}, {nameof(StartupDelaySeconds)}: {StartupDelaySeconds}, {nameof(RepeatIntervalSeconds)}: {RepeatIntervalSeconds}, {nameof(MaxWorkDurationSeconds)}: {MaxWorkDurationSeconds}, {nameof(MaxConsecutiveFailures)}: {MaxConsecutiveFailures}, {nameof(ServiceName)}: {ServiceName}";
 }
