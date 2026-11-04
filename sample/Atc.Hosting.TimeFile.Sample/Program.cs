@@ -10,21 +10,12 @@ var host = Host
     {
         services.AddSingleton(TimeProvider.System);
 
-        services.Configure<TimeFileWorkerOptions>(configuration.GetSection(TimeFileWorkerOptions.SectionName));
-        services.AddHostedService<TimeFileWorker>();
+        // Registers the options, the hosted service and its health wiring - or only the options when "Enabled" is false.
+        services.AddBackgroundService<TimeFileWorker, TimeFileWorkerOptions>(
+            configuration.GetSection(TimeFileWorkerOptions.SectionName));
 
-        services.Configure<TimeFileScheduleWorkerOptions>(configuration.GetSection(TimeFileScheduleWorkerOptions.SectionName));
-        services.AddHostedService<TimeFileScheduleWorker>();
-
-        services.AddSingleton<IBackgroundServiceHealthService, BackgroundServiceHealthService>(s =>
-        {
-            var healthService = new BackgroundServiceHealthService(s.GetRequiredService<TimeProvider>());
-
-            var timeFileWorkerOptions = s.GetRequiredService<IOptions<TimeFileWorkerOptions>>().Value;
-            healthService.SetMaxStalenessInSeconds(nameof(TimeFileWorker), timeFileWorkerOptions.RepeatIntervalSeconds);
-
-            return healthService;
-        });
+        services.AddBackgroundScheduleService<TimeFileScheduleWorker, TimeFileScheduleWorkerOptions>(
+            configuration.GetSection(TimeFileScheduleWorkerOptions.SectionName));
     })
     .Build();
 
