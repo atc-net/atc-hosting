@@ -45,7 +45,7 @@ jobs:
         run: dotnet build Atc.Hosting.slnx -c Release --no-restore /p:UseSourceLink=true
 
       # The version comes from the single <Version> in Directory.Build.props that release-please bumps.
-      # Only projects with IsPackable=true (the src library) produce a package.
+      # Every project with IsPackable=true (Atc.Hosting and Atc.Hosting.HealthChecks) produces a package, all with that same version.
       - name: 🗳️ Creating library package for release
         if: ${{ steps.release.outputs.release_created }}
         run: dotnet pack Atc.Hosting.slnx -c Release --no-restore -o "${{ github.workspace }}/packages"

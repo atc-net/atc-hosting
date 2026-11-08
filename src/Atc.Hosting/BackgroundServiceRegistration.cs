@@ -10,7 +10,7 @@ namespace Atc.Hosting;
 /// <c>Atc.Hosting.HealthChecks</c> package read it, so the hosted service, its staleness and its health check come from one call.
 /// Disabled services have no registration.
 /// </remarks>
-/// <param name="ServiceName">The name of the service: <see cref="IBackgroundServiceBaseOptions.ServiceName"/>, or the service type name when that isn't set.</param>
+/// <param name="ServiceName">The name of the service: <see cref="IBackgroundServiceBaseOptions.ServiceName"/>, or the name the service reports under when that isn't set.</param>
 /// <param name="ServiceType">The hosted service type.</param>
 /// <param name="MaxStalenessInSeconds">The max staleness applied to the service in <see cref="IBackgroundServiceHealthService"/>.</param>
 public sealed record BackgroundServiceRegistration(
